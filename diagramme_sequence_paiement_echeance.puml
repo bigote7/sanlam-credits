@@ -1,0 +1,149 @@
+@startuml Diagramme de Séquence - Paiement d'une Échéance
+!theme plain
+title Paiement d'une Échéance - Système de Gestion des Crédits Sanlam
+
+actor "Agent" as Agent
+participant "Interface Web" as Web
+participant "Vue Django" as View
+participant "Formulaire" as Form
+participant "Modèle Credit" as CreditModel
+participant "Modèle Echeance" as EcheanceModel
+participant "Modèle Reglement" as ReglementModel
+participant "Modèle ChequeGarantie" as ChequeModel
+participant "Modèle Alerte" as AlerteModel
+participant "Modèle ActionLog" as LogModel
+participant "Base de Données" as DB
+
+== Accès au Paiement ==
+Agent -> Web: Accède aux détails du crédit
+Web -> View: GET /credits/{id}/
+View -> CreditModel: Credit.objects.get(id=credit_id)
+CreditModel -> DB: SELECT * FROM credits WHERE id = ?
+DB --> CreditModel: Données du crédit
+CreditModel --> View: Instance du crédit
+View -> EcheanceModel: credit.echeances.all()
+EcheanceModel -> DB: SELECT * FROM echeances WHERE credit_id = ?
+DB --> EcheanceModel: Liste des échéances
+EcheanceModel --> View: QuerySet des échéances
+View --> Web: Template credit_detail.html
+Web --> Agent: Affichage des échéances
+
+== Sélection du Mode de Paiement ==
+Agent -> Web: Clique sur "Payer une échéance"
+Web -> View: GET /credits/{id}/paiement/
+View -> Form: PaiementEcheanceForm(credit=credit)
+Form --> View: Formulaire de paiement
+View --> Web: Template paiement_echeance_form.html
+Web --> Agent: Formulaire de paiement
+
+== Traitement du Paiement ==
+Agent -> Web: Remplit et soumet le formulaire
+Web -> View: POST /credits/{id}/paiement/
+View -> Form: PaiementEcheanceForm(request.POST, credit=credit)
+Form -> Form: Validation des données
+
+alt Données valides
+    Form --> View: form.is_valid() = True
+    View -> View: Récupération des données du formulaire
+    
+    alt Mode paiement = "espèces"
+        == Paiement en Espèces ==
+        View -> ReglementModel: Reglement.objects.create()
+        ReglementModel -> ReglementModel: mode_paiement = 'especes'
+        ReglementModel -> ReglementModel: statut = 'verse'
+        ReglementModel -> DB: INSERT INTO reglements
+        DB --> ReglementModel: Règlement créé
+        
+        == Mise à jour de l'Échéance ==
+        View -> EcheanceModel: echeance.est_traitee = True
+        View -> EcheanceModel: echeance.date_traitement = now()
+        EcheanceModel -> DB: UPDATE echeances SET est_traitee = True
+        DB --> EcheanceModel: Échéance mise à jour
+        
+        == Recalcul du Reste à Payer ==
+        View -> CreditModel: credit.recalculer_reste_a_payer()
+        CreditModel -> CreditModel: Calcul nouveau reste à payer
+        CreditModel -> DB: UPDATE credits SET reste_a_payer
+        DB --> CreditModel: Reste à payer mis à jour
+        
+    else Mode paiement = "chèque"
+        == Paiement par Chèque ==
+        View -> ReglementModel: Reglement.objects.create()
+        ReglementModel -> ReglementModel: mode_paiement = 'cheque'
+        ReglementModel -> ReglementModel: statut = 'non_verse'
+        ReglementModel -> DB: INSERT INTO reglements
+        DB --> ReglementModel: Règlement créé
+        
+        == Création du Chèque de Garantie ==
+        View -> ChequeModel: ChequeGarantie.objects.create()
+        ChequeModel -> DB: INSERT INTO cheques_garantie
+        DB --> ChequeModel: Chèque créé
+        
+        == Création d'Alerte pour Chèque ==
+        View -> AlerteModel: Alerte.objects.create()
+        AlerteModel -> AlerteModel: type_alerte = 'cheque_garantie'
+        AlerteModel -> DB: INSERT INTO alertes
+        DB --> AlerteModel: Alerte créée
+    end
+    
+    == Création des Logs ==
+    View -> LogModel: ActionLog.objects.create()
+    LogModel -> LogModel: type_action = 'paiement_echeance'
+    LogModel -> DB: INSERT INTO action_logs
+    DB --> LogModel: Log créé
+    
+    == Création d'Alerte de Paiement ==
+    View -> AlerteModel: Alerte.objects.create()
+    AlerteModel -> AlerteModel: type_alerte = 'paiement'
+    AlerteModel -> DB: INSERT INTO alertes
+    DB --> AlerteModel: Alerte créée
+    
+    View --> Web: Redirect vers credit_detail
+    Web --> Agent: Message de succès + Mise à jour affichage
+    
+else Données invalides
+    Form --> View: form.is_valid() = False
+    View --> Web: Template avec erreurs
+    Web --> Agent: Affichage des erreurs de validation
+end
+
+== Cas Spécial : Paiement en Espèces d'un Chèque ==
+alt Agent choisit "Payer chèque en espèces"
+    Agent -> Web: Sélectionne chèque à payer en espèces
+    Web -> View: POST /credits/{id}/payer-cheque-especes/
+    View -> View: Validation des données (montant, date, chèque)
+    
+    alt Données valides
+        View -> ReglementModel: Mise à jour règlement existant
+        ReglementModel -> ReglementModel: mode_paiement = 'especes'
+        ReglementModel -> ReglementModel: statut = 'verse'
+        ReglementModel -> DB: UPDATE reglements
+        DB --> ReglementModel: Règlement mis à jour
+        
+        View -> ChequeModel: cheque.delete()
+        ChequeModel -> DB: DELETE FROM cheques_garantie
+        DB --> ChequeModel: Chèque supprimé
+        
+        View -> AlerteModel: Alerte.objects.create()
+        AlerteModel -> AlerteModel: type_alerte = 'paiement_especes_cheque'
+        AlerteModel -> DB: INSERT INTO alertes
+        DB --> AlerteModel: Alerte créée
+        
+        View -> LogModel: ActionLog.objects.create()
+        LogModel -> DB: INSERT INTO action_logs
+        DB --> LogModel: Log créé
+        
+        View --> Web: Redirect + message succès
+        Web --> Agent: Confirmation paiement espèces
+    end
+end
+
+== Gestion des Erreurs ==
+alt Erreur lors du paiement
+    View -> View: try/except block
+    View -> DB: ROLLBACK transaction
+    View --> Web: Message d'erreur
+    Web --> Agent: Affichage de l'erreur
+end
+
+@enduml

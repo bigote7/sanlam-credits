@@ -1,0 +1,323 @@
+{% extends 'gestion_credits/base.html' %}
+{% load static %}
+
+{% block title %}Ajouter un Paiement - {{ credit.numero_police }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- En-tête -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="h2">
+                        <i class="bi bi-plus-circle text-success"></i>
+                        Ajouter un Paiement
+                    </h1>
+                    <p class="text-muted">Crédit {{ credit.numero_police }} - {{ credit.client.nom_complet }}</p>
+                </div>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="{% url 'gestion_credits:credit_detail' credit.pk %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour au crédit
+                    </a>
+                </div>
+            </div>
+
+            <!-- Informations du crédit -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-info-circle"></i>
+                                Informations du Crédit
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center">
+                                <strong>Police:</strong><br>
+                                <span class="h5 text-primary">{{ credit.numero_police }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-cash-coin"></i>
+                                Total Déjà Payé
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center">
+                                <span class="h3 text-success">{{ credit.total_paye|floatformat:2 }} DH</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Reste à Payer
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center">
+                                <span class="h3 text-danger">{{ credit.reste_a_payer|floatformat:2 }} DH</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire principal -->
+            <div class="card shadow">
+                <div class="card-header bg-gradient-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-credit-card"></i>
+                        Nouveau Paiement
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="paiementForm">
+                        {% csrf_token %}
+                        
+                        <!-- Mode de Paiement -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="bi bi-credit-card"></i>
+                                    1. Choisir le Mode de Paiement
+                                </h6>
+                                <div class="row">
+                                    {% for choice in form.mode_paiement %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check border rounded p-3 h-100 {% if choice.choice_value == 'especes' %}border-success{% else %}border-info{% endif %}">
+                                            {{ choice.tag }}
+                                            <label class="form-check-label h-100 d-flex flex-column justify-content-center" for="{{ choice.id_for_label }}">
+                                                <div class="text-center">
+                                                    {% if choice.choice_value == 'especes' %}
+                                                        <i class="bi bi-cash-coin text-success" style="font-size: 2rem;"></i>
+                                                        <h6 class="mt-2 text-success">Paiement en Espèces</h6>
+                                                        <small class="text-muted">Le client paie directement en espèces</small>
+                                                    {% else %}
+                                                        <i class="bi bi-bank text-info" style="font-size: 2rem;"></i>
+                                                        <h6 class="mt-2 text-info">Paiement par Effets</h6>
+                                                        <small class="text-muted">Chèques, virements ou autres moyens</small>
+                                                    {% endif %}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Détails du Paiement -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="bi bi-list-check"></i>
+                                    2. Détails du Paiement
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.montant.id_for_label }}" class="form-label">
+                                                <i class="bi bi-currency-exchange text-success"></i>
+                                                {{ form.montant.label }}
+                                            </label>
+                                            {{ form.montant }}
+                                            {% if form.montant.help_text %}
+                                                <div class="form-text">{{ form.montant.help_text }}</div>
+                                            {% endif %}
+                                            {% if form.montant.errors %}
+                                                <div class="text-danger">{{ form.montant.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.date_paiement.id_for_label }}" class="form-label">
+                                                <i class="bi bi-calendar text-warning"></i>
+                                                {{ form.date_paiement.label }}
+                                            </label>
+                                            {{ form.date_paiement }}
+                                            {% if form.date_paiement.errors %}
+                                                <div class="text-danger">{{ form.date_paiement.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Effets (visible seulement si mode effets) -->
+                        <div id="sectionEffets" class="row mb-4" style="display: none;">
+                            <div class="col-12">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-bank"></i>
+                                            Informations de l'Effet
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.numero_effet.id_for_label }}" class="form-label">
+                                                        {{ form.numero_effet.label }}
+                                                    </label>
+                                                    {{ form.numero_effet }}
+                                                    {% if form.numero_effet.errors %}
+                                                        <div class="text-danger">{{ form.numero_effet.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.banque_emetteur.id_for_label }}" class="form-label">
+                                                        {{ form.banque_emetteur.label }}
+                                                    </label>
+                                                    {{ form.banque_emetteur }}
+                                                    {% if form.banque_emetteur.errors %}
+                                                        <div class="text-danger">{{ form.banque_emetteur.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.date_emission_effet.id_for_label }}" class="form-label">
+                                                        {{ form.date_emission_effet.label }}
+                                                    </label>
+                                                    {{ form.date_emission_effet }}
+                                                    {% if form.date_emission_effet.errors %}
+                                                        <div class="text-danger">{{ form.date_emission_effet.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Commentaire -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.commentaire.id_for_label }}" class="form-label">
+                                        <i class="bi bi-chat-text"></i>
+                                        {{ form.commentaire.label }}
+                                    </label>
+                                    {{ form.commentaire }}
+                                    {% if form.commentaire.errors %}
+                                        <div class="text-danger">{{ form.commentaire.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Résumé du paiement -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h6 class="mb-2">
+                                        <i class="bi bi-info-circle"></i>
+                                        <strong>Résumé du Paiement :</strong>
+                                    </h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Mode :</strong> <span id="modeResume">Espèces</span></li>
+                                        <li><strong>Montant :</strong> <span id="montantResume">0.00 DH</span></li>
+                                        <li><strong>Date :</strong> <span id="dateResume">{{ form.date_paiement.initial|date:"d/m/Y" }}</span></li>
+                                        <li><strong>Reste après paiement :</strong> <span id="resteResume">{{ credit.reste_a_payer|floatformat:2 }} DH</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'gestion_credits:credit_detail' credit.pk %}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="bi bi-check-circle"></i> Ajouter le Paiement
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modePaiementInputs = document.querySelectorAll('input[name="{{ form.mode_paiement.name }}"]');
+    const sectionEffets = document.getElementById('sectionEffets');
+    const montantInput = document.getElementById('{{ form.montant.id_for_label }}');
+    const datePaiementInput = document.getElementById('{{ form.date_paiement.id_for_label }}');
+    
+    // Éléments du résumé
+    const modeResume = document.getElementById('modeResume');
+    const montantResume = document.getElementById('montantResume');
+    const dateResume = document.getElementById('dateResume');
+    const resteResume = document.getElementById('resteResume');
+    
+    const resteInitial = parseFloat('{{ credit.reste_a_payer }}');
+    
+    // Gérer l'affichage selon le mode de paiement
+    function gererAffichageModePaiement() {
+        const modePaiement = document.querySelector('input[name="{{ form.mode_paiement.name }}"]:checked').value;
+        sectionEffets.style.display = modePaiement === 'effets' ? 'block' : 'none';
+        
+        // Mettre à jour le résumé
+        modeResume.textContent = modePaiement === 'especes' ? 'Espèces' : 'Effets';
+        mettreAJourResume();
+    }
+    
+    // Mettre à jour le résumé
+    function mettreAJourResume() {
+        const montant = parseFloat(montantInput.value) || 0;
+        const date = datePaiementInput.value;
+        
+        montantResume.textContent = montant.toFixed(2) + ' DH';
+        dateResume.textContent = date ? new Date(date).toLocaleDateString('fr-FR') : '{{ form.date_paiement.initial|date:"d/m/Y" }}';
+        
+        const resteApres = resteInitial - montant;
+        resteResume.textContent = resteApres.toFixed(2) + ' DH';
+        
+        // Changer la couleur selon le montant
+        if (montant > resteInitial) {
+            resteResume.className = 'text-danger fw-bold';
+        } else if (montant === resteInitial) {
+            resteResume.className = 'text-success fw-bold';
+        } else {
+            resteResume.className = 'text-warning';
+        }
+    }
+    
+    // Écouter les changements
+    modePaiementInputs.forEach(input => {
+        input.addEventListener('change', gererAffichageModePaiement);
+    });
+    
+    montantInput.addEventListener('input', mettreAJourResume);
+    datePaiementInput.addEventListener('change', mettreAJourResume);
+    
+    // Initialiser l'affichage
+    gererAffichageModePaiement();
+    mettreAJourResume();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,789 @@
+{% extends 'gestion_credits/base.html' %}
+{% load static %}
+
+{% block title %}Historique des Actions - THMAQ{% endblock %}
+
+{% block extra_css %}
+<style>
+    .historique-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .historique-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .historique-title {
+        color: #2c3e50;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .historique-subtitle {
+        color: #7f8c8d;
+        text-align: center;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    .filtres-section {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .filtres-title {
+        color: #2c3e50;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .filtres-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .filtre-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .filtre-label {
+        color: #34495e;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .filtre-input {
+        padding: 0.75rem;
+        border: 2px solid #e0e6ed;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .filtre-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .filtres-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-filtre {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+    
+    .btn-filtre-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-filtre-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-filtre-secondary {
+        background: #ecf0f1;
+        color: #2c3e50;
+    }
+    
+    .btn-filtre-secondary:hover {
+        background: #d5dbdb;
+        transform: translateY(-2px);
+    }
+    
+    .actions-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .actions-title {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .action-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        border-left: 5px solid #667eea;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .action-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .action-type {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .action-statut {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .statut-succes {
+        background: #27ae60;
+        color: white;
+    }
+    
+    .statut-en_cours {
+        background: #f39c12;
+        color: white;
+    }
+    
+    .statut-en_attente {
+        background: #e74c3c;
+        color: white;
+    }
+    
+    .action-description {
+        color: #2c3e50;
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    
+    .action-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .detail-label {
+        color: #7f8c8d;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+    
+    .detail-value {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .action-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #ecf0f1;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .action-date {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .action-agent {
+        color: #667eea;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 2rem;
+        gap: 0.5rem;
+    }
+    
+    .page-link {
+        padding: 0.75rem 1rem;
+        border: 2px solid #e0e6ed;
+        border-radius: 10px;
+        color: #2c3e50;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+    
+    .page-link:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .page-current {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #7f8c8d;
+    }
+    
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .empty-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+    
+    .empty-description {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    
+    .search-box {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: 2px solid #e0e6ed;
+        border-radius: 15px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #7f8c8d;
+        font-size: 1.2rem;
+    }
+    
+    @media (max-width: 768px) {
+        .historique-container {
+            padding: 1rem 0;
+        }
+        
+        .historique-header,
+        .filtres-section,
+        .actions-container {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .historique-title {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filtres-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .action-details {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-meta {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="historique-container">
+    <div class="container">
+        <!-- En-tête de la page -->
+        <div class="historique-header">
+            <h1 class="historique-title">📊 Historique des Actions</h1>
+            <p class="historique-subtitle">
+                Suivi complet de toutes les activités et transactions du système THMAQ
+            </p>
+            
+            <!-- Statistiques globales -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_actions }}</div>
+                    <div class="stat-label">Total des Actions</div>
+            </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ actions_aujourd_hui }}</div>
+                    <div class="stat-label">Actions Aujourd'hui</div>
+        </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ actions_cette_semaine }}</div>
+                    <div class="stat-label">Actions Cette Semaine</div>
+    </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ actions_urgentes|length }}</div>
+                    <div class="stat-label">Actions Urgentes</div>
+        </div>
+    </div>
+</div>
+
+        <!-- Section des filtres -->
+        <div class="filtres-section">
+            <h2 class="filtres-title">🔍 Filtres et Recherche</h2>
+            
+            <!-- Barre de recherche -->
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Rechercher dans les actions, agents, clients, crédits..." 
+                       value="{{ search_query }}" id="searchInput">
+</div>
+
+<!-- Filtres avancés -->
+            <form method="get" id="filtresForm">
+                <div class="filtres-grid">
+                    <div class="filtre-group">
+                        <label class="filtre-label">Type d'Action</label>
+                        <select name="type_action" class="filtre-input" onchange="this.form.submit()">
+                    <option value="">Tous les types</option>
+                            {% for choice in type_action_choices %}
+                                <option value="{{ choice.0 }}" {% if choice.0 == type_action_filter %}selected{% endif %}>
+                                    {{ choice.1 }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+                    <div class="filtre-group">
+                        <label class="filtre-label">Statut</label>
+                        <select name="statut" class="filtre-input" onchange="this.form.submit()">
+                    <option value="">Tous les statuts</option>
+                            {% for choice in statut_choices %}
+                                <option value="{{ choice.0 }}" {% if choice.0 == statut_filter %}selected{% endif %}>
+                                    {{ choice.1 }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+                    <div class="filtre-group">
+                        <label class="filtre-label">Agent</label>
+                        <select name="agent" class="filtre-input" onchange="this.form.submit()">
+                    <option value="">Tous les agents</option>
+                    {% for agent in agents_disponibles %}
+                    <option value="{{ agent.username }}" {% if agent.username == agent_filter %}selected{% endif %}>
+                        {{ agent.get_full_name|default:agent.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+                    <div class="filtre-group">
+                        <label class="filtre-label">Client</label>
+                        <select name="client" class="filtre-input" onchange="this.form.submit()">
+                    <option value="">Tous les clients</option>
+                    {% for client in clients_disponibles %}
+                    <option value="{{ client.nom }}" {% if client.nom == client_filter %}selected{% endif %}>
+                        {{ client.nom_complet }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+                    <div class="filtre-group">
+                        <label class="filtre-label">Date de début</label>
+                        <input type="date" name="date_debut" class="filtre-input" 
+                               value="{{ date_debut }}" onchange="this.form.submit()">
+            </div>
+            
+                    <div class="filtre-group">
+                        <label class="filtre-label">Date de fin</label>
+                        <input type="date" name="date_fin" class="filtre-input" 
+                               value="{{ date_fin }}" onchange="this.form.submit()">
+                    </div>
+            </div>
+            
+                <div class="filtres-actions">
+                    <button type="submit" class="btn-filtre btn-filtre-primary">
+                        <i class="fas fa-filter"></i> Appliquer les Filtres
+                </button>
+                    <a href="{% url 'gestion_credits:historique_actions' %}" class="btn-filtre btn-filtre-secondary">
+                        <i class="fas fa-times"></i> Réinitialiser
+                </a>
+            </div>
+        </form>
+</div>
+
+        <!-- Actions urgentes -->
+        {% if actions_urgentes %}
+        <div class="actions-container">
+            <h2 class="actions-title">🚨 Actions Urgentes</h2>
+            {% for action in actions_urgentes %}
+            <div class="action-card">
+                <div class="action-header">
+                    <span class="action-type">{{ action.get_type_action_display }}</span>
+                    <span class="action-statut statut-{{ action.statut }}">{{ action.get_statut_display }}</span>
+    </div>
+                <div class="action-description">{{ action.description }}</div>
+                <div class="action-details">
+                    {% if action.agent %}
+                    <div class="detail-item">
+                        <span class="detail-label">Agent</span>
+                        <span class="detail-value">{{ action.agent.get_full_name|default:action.agent.username }}</span>
+                            </div>
+                            {% endif %}
+                            {% if action.client %}
+                    <div class="detail-item">
+                        <span class="detail-label">Client</span>
+                        <span class="detail-value">{{ action.client.nom_complet }}</span>
+                    </div>
+                            {% endif %}
+                    {% if action.credit %}
+                    <div class="detail-item">
+                        <span class="detail-label">Crédit</span>
+                        <span class="detail-value">{{ action.credit.numero_police }}</span>
+                                </div>
+                                            {% endif %}
+                                        </div>
+                <div class="action-meta">
+                    <span class="action-date">
+                        <i class="fas fa-calendar"></i> {{ action.date_action|date:"d/m/Y H:i" }}
+                    </span>
+                    <span class="action-agent">
+                        <i class="fas fa-user"></i> {{ action.agent.get_full_name|default:action.agent.username }}
+                    </span>
+                                        </div>
+                                    </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Liste des actions -->
+        <div class="actions-container">
+            <h2 class="actions-title">📋 Toutes les Actions</h2>
+            
+            {% if page_obj %}
+                {% for action in page_obj %}
+                <div class="action-card">
+                    <div class="action-header">
+                        <span class="action-type">{{ action.get_type_action_display }}</span>
+                        <span class="action-statut statut-{{ action.statut }}">{{ action.get_statut_display }}</span>
+                    </div>
+                    <div class="action-description">{{ action.description }}</div>
+                                    
+                                    {% if action.donnees_avant or action.donnees_apres %}
+                    <div class="action-details">
+                                        {% if action.donnees_avant %}
+                        <div class="detail-item">
+                            <span class="detail-label">Données Avant</span>
+                            <span class="detail-value">
+                                {% for key, value in action.donnees_avant.items %}
+                                    <strong>{{ key }}:</strong> {{ value }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </span>
+                                        </div>
+                                        {% endif %}
+                                        {% if action.donnees_apres %}
+                        <div class="detail-item">
+                            <span class="detail-label">Données Après</span>
+                            <span class="detail-value">
+                                {% for key, value in action.donnees_apres.items %}
+                                    <strong>{{ key }}:</strong> {{ value }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    
+                    <div class="action-details">
+                        {% if action.agent %}
+                        <div class="detail-item">
+                            <span class="detail-label">Agent</span>
+                            <span class="detail-value">{{ action.agent.get_full_name|default:action.agent.username }}</span>
+                        </div>
+                        {% endif %}
+                        {% if action.client %}
+                        <div class="detail-item">
+                            <span class="detail-label">Client</span>
+                            <span class="detail-value">{{ action.client.nom_complet }}</span>
+                        </div>
+                                    {% endif %}
+                        {% if action.credit %}
+                        <div class="detail-item">
+                            <span class="detail-label">Crédit</span>
+                            <span class="detail-value">{{ action.credit.numero_police }}</span>
+                                </div>
+                        {% endif %}
+                        {% if action.echeance %}
+                        <div class="detail-item">
+                            <span class="detail-label">Échéance</span>
+                            <span class="detail-value">Partie {{ action.echeance.numero_partie }}</span>
+                                </div>
+                        {% endif %}
+                            </div>
+                    
+                    <div class="action-meta">
+                        <span class="action-date">
+                            <i class="fas fa-calendar"></i> {{ action.date_action|date:"d/m/Y H:i" }}
+                        </span>
+                        <span class="action-agent">
+                            <i class="fas fa-user"></i> {{ action.agent.get_full_name|default:action.agent.username }}
+                        </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+                <div class="pagination-container">
+                {% if page_obj.has_previous %}
+                        <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if type_action_filter %}&type_action={{ type_action_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}" class="page-link">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_action_filter %}&type_action={{ type_action_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}" class="page-link">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                            <span class="page-link page-current">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_action_filter %}&type_action={{ type_action_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}" class="page-link">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_action_filter %}&type_action={{ type_action_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}" class="page-link">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_action_filter %}&type_action={{ type_action_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}" class="page-link">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                {% endif %}
+                </div>
+        {% endif %}
+        
+        {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <div class="empty-title">Aucune action trouvée</div>
+                    <div class="empty-description">
+                        Aucune action ne correspond aux critères de recherche sélectionnés.<br>
+                        Essayez de modifier vos filtres ou de réinitialiser la recherche.
+                    </div>
+        </div>
+        {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Recherche en temps réel
+    const searchInput = document.getElementById('searchInput');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const searchValue = this.value;
+            const currentUrl = new URL(window.location);
+            
+            if (searchValue) {
+                currentUrl.searchParams.set('search', searchValue);
+            } else {
+                currentUrl.searchParams.delete('search');
+            }
+            
+            // Réinitialiser la pagination lors d'une nouvelle recherche
+            currentUrl.searchParams.delete('page');
+            
+            window.location.href = currentUrl.toString();
+        }, 500);
+    });
+    
+    // Auto-submit des filtres
+    const filterSelects = document.querySelectorAll('select[name="type_action"], select[name="statut"], select[name="agent"], select[name="client"]');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Réinitialiser la pagination lors du changement de filtre
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.delete('page');
+            currentUrl.searchParams.set(this.name, this.value);
+            window.location.href = currentUrl.toString();
+        });
+    });
+    
+    // Auto-submit des dates
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.delete('page');
+            currentUrl.searchParams.set(this.name, this.value);
+            window.location.href = currentUrl.toString();
+        });
+    });
+    
+    // Animation des cartes au chargement
+    const actionCards = document.querySelectorAll('.action-card');
+    actionCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Animation des statistiques
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => {
+        const finalNumber = parseInt(stat.textContent);
+        let currentNumber = 0;
+        const increment = finalNumber / 50;
+        
+        const timer = setInterval(() => {
+            currentNumber += increment;
+            if (currentNumber >= finalNumber) {
+                stat.textContent = finalNumber;
+                clearInterval(timer);
+            } else {
+                stat.textContent = Math.floor(currentNumber);
+            }
+        }, 30);
+    });
+});
+
+// Fonction pour exporter l'historique (optionnel)
+function exporterHistorique() {
+    // Implémentation de l'export CSV/Excel
+    alert('Fonctionnalité d\'export à implémenter');
+}
+
+// Fonction pour imprimer l'historique (optionnel)
+function imprimerHistorique() {
+    window.print();
+}
+</script>
+{% endblock %}

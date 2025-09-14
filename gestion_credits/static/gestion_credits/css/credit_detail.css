@@ -1,0 +1,156 @@
+/* Styles personnalisés pour la page de détail du crédit */
+
+/* Badge du numéro de police dans l'en-tête */
+.numero-police-badge {
+    animation: fadeInRight 0.6s ease-out;
+}
+
+.numero-police-badge .badge {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3) !important;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.numero-police-badge .badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.numero-police-badge .badge:hover::before {
+    left: 100%;
+}
+
+.numero-police-badge .badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4) !important;
+}
+
+/* Badge du numéro de police dans la carte */
+.card-body .badge.bg-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 2px 10px rgba(0, 123, 255, 0.2) !important;
+    transition: all 0.3s ease;
+}
+
+.card-body .badge.bg-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3) !important;
+}
+
+/* Animation d'apparition */
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .numero-police-badge {
+        margin-top: 1rem;
+    }
+    
+    .numero-police-badge .badge {
+        font-size: 0.875rem !important;
+        padding: 0.5rem 1rem !important;
+    }
+    
+    .d-flex.align-items-center {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .h2.me-3 {
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Effet de brillance sur le badge */
+.numero-police-badge .badge {
+    position: relative;
+    overflow: hidden;
+}
+
+.numero-police-badge .badge::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: rotate 3s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.numero-police-badge .badge:hover::after {
+    opacity: 1;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Style spécial pour le numéro de police */
+.numero-police-badge .badge strong {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+}
+
+/* Effet de pulsation subtil */
+.numero-police-badge .badge {
+    animation: fadeInRight 0.6s ease-out, subtlePulse 2s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Style pour la carte d'informations */
+.card-header.bg-success {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-header.bg-success::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.card-header.bg-success:hover::before {
+    transform: translateX(100%);
+}

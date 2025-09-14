@@ -1,0 +1,152 @@
+{% extends 'gestion_credits/base.html' %}
+
+{% block title %}Traiter Alerte - Sanlam Crédits{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-bell text-warning"></i>
+        Traiter l'Alerte
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'gestion_credits:alerte_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour aux alertes
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-bell"></i>
+                    Traitement de l'Alerte
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Information :</strong> Marquez cette alerte comme traitée ou reportez-la selon le besoin.
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <i class="bi bi-bell text-warning" style="font-size: 4rem;"></i>
+                    </div>
+                    <div class="col-md-8">
+                        <h5 class="text-warning">{{ alerte.type_alerte|title }}</h5>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-person text-primary"></i> 
+                            <strong>Client :</strong> {{ alerte.echeance.credit.client.nom_complet }}
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-currency-exchange text-success"></i> 
+                            <strong>Montant :</strong> {{ alerte.echeance.montant|floatformat:2 }} DH
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-calendar text-warning"></i> 
+                            <strong>Date d'échéance :</strong> {{ alerte.echeance.date_echeance|date:"d/m/Y" }}
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-123 text-secondary"></i> 
+                            <strong>Partie :</strong> {{ alerte.echeance.numero_partie }}
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-chat-text text-info"></i> 
+                            <strong>Message :</strong> {{ alerte.message }}
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-calendar-event text-danger"></i> 
+                            <strong>Date d'alerte :</strong> {{ alerte.date_alerte|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.statut.id_for_label }}" class="form-label">
+                                <i class="bi bi-tag"></i> Statut *
+                            </label>
+                            {{ form.statut }}
+                            {% if form.statut.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.statut.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.commentaire_traitement.id_for_label }}" class="form-label">
+                                <i class="bi bi-text-paragraph"></i> Commentaire de traitement
+                            </label>
+                            {{ form.commentaire_traitement }}
+                            {% if form.commentaire_traitement.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.commentaire_traitement.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="date_report_group" style="display: none;">
+                        <label for="{{ form.date_report.id_for_label }}" class="form-label">
+                            <i class="bi bi-calendar-plus"></i> Date de report
+                        </label>
+                        {{ form.date_report }}
+                        {% if form.date_report.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.date_report.errors.0 }}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Date à laquelle l'alerte sera réactivée</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'gestion_credits:alerte_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-circle"></i> Traiter l'Alerte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statutSelect = document.getElementById('{{ form.statut.id_for_label }}');
+    const dateReportGroup = document.getElementById('date_report_group');
+    
+    function toggleDateReport() {
+        if (statutSelect.value === 'reporter') {
+            dateReportGroup.style.display = 'block';
+        } else {
+            dateReportGroup.style.display = 'none';
+        }
+    }
+    
+    if (statutSelect) {
+        statutSelect.addEventListener('change', toggleDateReport);
+        toggleDateReport(); // Initial state
+    }
+    
+    // Validation de la date de report
+    const dateReportInput = document.getElementById('{{ form.date_report.id_for_label }}');
+    if (dateReportInput) {
+        const today = new Date();
+        today.setDate(today.getDate() + 1); // Demain minimum
+        const tomorrow = today.toISOString().split('T')[0];
+        dateReportInput.min = tomorrow;
+    }
+});
+</script>
+{% endblock %}

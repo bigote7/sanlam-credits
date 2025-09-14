@@ -1,0 +1,276 @@
+@startuml Diagramme de Classe - Gestion des Crédits
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam classFontStyle bold
+skinparam classBackgroundColor #F8F9FA
+skinparam classBorderColor #6C757D
+skinparam classArrowColor #495057
+skinparam packageBackgroundColor #E9ECEF
+skinparam packageBorderColor #6C757D
+
+title **Diagramme de Classe - Système de Gestion des Crédits**\n*Structure des modèles et leurs relations*
+
+package "gestion_credits.models" {
+    
+    class User {
+        +username: CharField
+        +email: EmailField
+        +first_name: CharField
+        +last_name: CharField
+        +is_active: BooleanField
+        +date_joined: DateTimeField
+        +get_full_name()
+        +get_username()
+    }
+    
+    class Client {
+        +nom: CharField
+        +prenom: CharField
+        +cin: CharField
+        +telephone: CharField
+        +email: EmailField
+        +adresse: TextField
+        +date_creation: DateTimeField
+        +agent: ForeignKey(User)
+        +nom_complet: property
+        +get_absolute_url()
+        +save()
+    }
+    
+    class Credit {
+        +numero_police: CharField
+        +type_credit: CharField
+        +montant_total: DecimalField
+        +taux_interet: DecimalField
+        +duree_mois: IntegerField
+        +date_creation: DateTimeField
+        +date_debut: DateField
+        +description: TextField
+        +client: ForeignKey(Client)
+        +agent: ForeignKey(User)
+        +get_absolute_url()
+        +save()
+        +delete()
+    }
+    
+    class Echeance {
+        +numero_partie: IntegerField
+        +montant: DecimalField
+        +date_echeance: DateField
+        +est_traitee: BooleanField
+        +date_traitement: DateTimeField
+        +credit: ForeignKey(Credit)
+        +get_absolute_url()
+        +save()
+        +delete()
+    }
+    
+    class Cheque {
+        +numero_cheque: CharField
+        +montant: DecimalField
+        +date_emission: DateField
+        +date_encaissement: DateField
+        +est_encaisse: BooleanField
+        +echeance: ForeignKey(Echeance)
+        +get_absolute_url()
+        +save()
+        +delete()
+    }
+    
+    class Alerte {
+        +type_alerte: CharField
+        +message: TextField
+        +date_creation: DateTimeField
+        +statut: CharField
+        +echeance: ForeignKey(Echeance)
+        +agent: ForeignKey(User)
+        +get_absolute_url()
+        +save()
+        +delete()
+    }
+    
+    class ReportEcheance {
+        +date_report: DateField
+        +raison: TextField
+        +echeance: ForeignKey(Echeance)
+        +agent: ForeignKey(User)
+        +date_creation: DateTimeField
+        +get_absolute_url()
+        +save()
+        +delete()
+    }
+    
+    class ActionLog {
+        +type_action: CharField
+        +description: TextField
+        +statut: CharField
+        +date_action: DateTimeField
+        +agent: ForeignKey(User)
+        +client: ForeignKey(Client)
+        +credit: ForeignKey(Credit)
+        +echeance: ForeignKey(Echeance)
+        +donnees_avant: JSONField
+        +donnees_apres: JSONField
+        +get_absolute_url()
+        +save()
+        +delete()
+    }
+}
+
+package "gestion_credits.views" {
+    
+    class CreditViews {
+        +credit_list(request)
+        +credit_create(request)
+        +credit_detail(request, pk)
+        +credit_update(request, pk)
+        +credit_delete(request, pk)
+        +echeance_create_for_credit(request, credit_id)
+        +echeance_traiter(request, pk)
+        +echeance_reporter(request, pk)
+    }
+    
+    class ClientViews {
+        +client_list(request)
+        +client_create(request)
+        +client_detail(request, pk)
+        +client_update(request, pk)
+        +client_delete(request, pk)
+    }
+    
+    class DashboardViews {
+        +dashboard(request)
+        +dashboard_stats(request)
+        +historique_actions(request)
+    }
+}
+
+package "gestion_credits.forms" {
+    
+    class CreditForm {
+        +numero_police: CharField
+        +type_credit: ChoiceField
+        +montant_total: DecimalField
+        +taux_interet: DecimalField
+        +duree_mois: IntegerField
+        +date_debut: DateField
+        +description: CharField
+        +clean()
+        +save()
+    }
+    
+    class ClientForm {
+        +nom: CharField
+        +prenom: CharField
+        +cin: CharField
+        +telephone: CharField
+        +email: EmailField
+        +adresse: CharField
+        +clean()
+        +save()
+    }
+    
+    class EcheanceForm {
+        +numero_partie: IntegerField
+        +montant: DecimalField
+        +date_echeance: DateField
+        +clean()
+        +save()
+    }
+}
+
+package "gestion_credits.templates" {
+    
+    class CreditTemplates {
+        +credit_list.html
+        +credit_detail.html
+        +credit_create.html
+        +credit_update.html
+        +echeance_create.html
+        +echeance_list.html
+    }
+    
+    class ClientTemplates {
+        +client_list.html
+        +client_detail.html
+        +client_create.html
+        +client_update.html
+    }
+    
+    class DashboardTemplates {
+        +dashboard.html
+        +historique_actions.html
+        +base.html
+    }
+}
+
+' Relations entre les modèles
+User ||--o{ Client : "crée/gère"
+User ||--o{ Credit : "crée/gère"
+User ||--o{ ActionLog : "effectue"
+User ||--o{ Alerte : "traite"
+
+Client ||--o{ Credit : "possède"
+Credit ||--o{ Echeance : "contient"
+Credit ||--o{ ActionLog : "est_loggé"
+
+Echeance ||--o{ Cheque : "peut_avoir"
+Echeance ||--o{ Alerte : "génère"
+Echeance ||--o{ ReportEcheance : "peut_être_reportée"
+Echeance ||--o{ ActionLog : "est_loggée"
+
+' Relations avec les vues
+CreditViews ..> Credit : "utilise"
+CreditViews ..> Echeance : "gère"
+CreditViews ..> ActionLog : "crée"
+
+ClientViews ..> Client : "gère"
+ClientViews ..> ActionLog : "crée"
+
+DashboardViews ..> ActionLog : "consulte"
+DashboardViews ..> Credit : "statistiques"
+DashboardViews ..> Client : "statistiques"
+
+' Relations avec les formulaires
+CreditForm ..> Credit : "valide"
+ClientForm ..> Client : "valide"
+EcheanceForm ..> Echeance : "valide"
+
+' Relations avec les templates
+CreditTemplates ..> Credit : "affiche"
+ClientTemplates ..> Client : "affiche"
+DashboardTemplates ..> Credit : "affiche"
+DashboardTemplates ..> Client : "affiche"
+
+note right of Credit
+    **Types de crédit :**
+    - unique : Crédit en une seule fois
+    - divise : Crédit divisé en échéances
+end note
+
+note right of Echeance
+    **Statuts :**
+    - est_traitee : True/False
+    - date_traitement : Quand payée
+end note
+
+note right of ActionLog
+    **Types d'actions :**
+    - credit_creation
+    - credit_modification
+    - echeance_creation
+    - echeance_paiement
+    - client_creation
+    - client_modification
+end note
+
+note right of Alerte
+    **Types d'alertes :**
+    - echeance_retard
+    - echeance_proche
+    - credit_impaye
+end note
+
+@enduml

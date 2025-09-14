@@ -1,0 +1,107 @@
+{% extends 'gestion_credits/base.html' %}
+
+{% block title %}Supprimer Client - {{ client.nom_complet }} - Sanlam Crédits{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-exclamation-triangle text-danger"></i>
+        Confirmer la Suppression
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'gestion_credits:client_detail' client.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour aux détails
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Attention : Suppression de Client
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Attention !</strong> Cette action est irréversible et supprimera définitivement le client et toutes ses données associées.
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <i class="bi bi-person-x text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    <div class="col-md-8">
+                        <h5 class="text-danger">{{ client.nom_complet }}</h5>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-card-text"></i> CIN : {{ client.cin }}
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-telephone"></i> {{ client.telephone }}
+                        </p>
+                        {% if client.email %}
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-envelope"></i> {{ client.email }}
+                        </p>
+                        {% endif %}
+                        
+                        <hr>
+                        
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h4 class="text-primary mb-0">{{ client.credits.count }}</h4>
+                                <small class="text-muted">Crédits</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-warning mb-0">
+                                    {% if client.credits.count > 0 %}
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    {% else %}
+                                    0
+                                    {% endif %}
+                                </h4>
+                                <small class="text-muted">Actifs</small>
+                            </div>
+                        </div>
+                        
+                        {% if client.credits.count > 0 %}
+                        <div class="alert alert-danger mt-3">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Attention :</strong> Ce client a {{ client.credits.count }} crédit(s) actif(s). 
+                            La suppression supprimera également tous les crédits et échéances associés.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'gestion_credits:client_detail' client.pk %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Confirmer la Suppression
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card.border-danger {
+    border-width: 2px !important;
+}
+
+.bi-person-x {
+    opacity: 0.8;
+}
+</style>
+{% endblock %}

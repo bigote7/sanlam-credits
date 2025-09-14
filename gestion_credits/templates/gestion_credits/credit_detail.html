@@ -1,0 +1,521 @@
+{% extends 'gestion_credits/base.html' %}
+{% load static %}
+
+{% block title %}Détails Crédit - {{ credit.client.nom_complet }} - Sanlam Crédits{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'gestion_credits/css/credit_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center">
+        <h1 class="h2 me-3">
+            <i class="bi bi-credit-card text-success"></i>
+            Détails du Crédit
+        </h1>
+        <!-- Numéro de police stylisé -->
+        <div class="numero-police-badge">
+            <span class="badge bg-primary fs-6 px-3 py-2 border-0 shadow-sm">
+                <i class="bi bi-file-earmark-text me-2"></i>
+                <strong>Police {{ credit.numero_police }}</strong>
+            </span>
+        </div>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'gestion_credits:credit_delete' credit.pk %}" class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce crédit ?')">
+                <i class="bi bi-trash"></i> Supprimer
+            </a>
+        </div>
+        <a href="{% url 'gestion_credits:credit_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informations du crédit -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-credit-card"></i>
+                    Informations Générales
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Numéro de police en premier -->
+                <div class="mb-3">
+                    <strong><i class="bi bi-file-earmark-text text-primary"></i> Numéro de Police :</strong>
+                    <br>
+                    <span class="badge bg-primary fs-6 px-3 py-2 border-0">
+                        <i class="bi bi-shield-check me-2"></i>
+                        <strong>{{ credit.numero_police }}</strong>
+                    </span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong><i class="bi bi-person text-primary"></i> Client :</strong>
+                    <br>
+                    <a href="{% url 'gestion_credits:client_detail' credit.client.pk %}" class="text-decoration-none">
+                        {{ credit.client.nom_complet }}
+                    </a>
+                </div>
+                
+                <div class="mb-3">
+                    <strong><i class="bi bi-currency-exchange text-success"></i> Montant Total :</strong>
+                    <br>
+                    <span class="h4 text-success">{{ credit.montant_total|floatformat:2 }} DH</span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong><i class="bi bi-cash-coin text-success"></i> Total Payé :</strong>
+                    <br>
+                    <span class="h4 text-success">{{ total_reglements|floatformat:2 }} DH</span>
+                    <br>
+                    <small class="text-muted">(Espèces + Chèques versés)</small>
+                </div>
+                
+                {% if total_cheques_non_verses > 0 %}
+                <div class="mb-3">
+                    <strong><i class="bi bi-clock text-warning"></i> Chèques Non Versés :</strong>
+                    <br>
+                    <span class="h4 text-warning">{{ total_cheques_non_verses|floatformat:2 }} DH</span>
+                    <br>
+                    <small class="text-muted">(Non comptabilisés dans le total payé)</small>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong><i class="bi bi-exclamation-triangle text-danger"></i> Reste à Payer :</strong>
+                    <br>
+                    <span class="h4 text-danger">{{ reste_a_payer|floatformat:2 }} DH</span>
+                    <br>
+                    <small class="text-muted">(Basé sur les montants effectivement versés)</small>
+                </div>
+                
+                <div class="mb-3">
+                    <strong><i class="bi bi-tag text-info"></i> Type :</strong>
+                    <br>
+                    {% if credit.type_credit == 'unique' %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-1-circle"></i> Crédit Unique
+                    </span>
+                    {% else %}
+                    <span class="badge bg-primary">
+                        <i class="bi bi-collection"></i> Crédit Divisé
+                    </span>
+                    {% endif %}
+                </div>
+                
+                {% if credit.description %}
+                <div class="mb-3">
+                    <strong><i class="bi bi-text-paragraph text-secondary"></i> Description :</strong>
+                    <br>
+                    <small class="text-muted">{{ credit.description }}</small>
+                </div>
+                {% endif %}
+                
+                {% if credit.type_credit == 'unique' %}
+                <div class="mb-3">
+                    <strong><i class="bi bi-calendar text-warning"></i> Date d'échéance :</strong>
+                    <br>
+                    <span class="badge bg-warning">{{ credit.date_echeance|date:"d/m/Y" }}</span>
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="text-muted">
+                    <small>
+                        <i class="bi bi-person-badge"></i> Agent : {{ credit.agent.get_full_name|default:credit.agent.username }}
+                    </small>
+                    <br>
+                    <small>
+                        <i class="bi bi-calendar-plus"></i> Créé le : {{ credit.date_creation|date:"d/m/Y" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section des Chèques de Garantie (déplacée ici) -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-bank"></i>
+                    Chèques de Garantie
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if cheques_garantie %}
+                    <!-- Chèques Non Versés (à encaisser) -->
+                    <div class="mb-4">
+                        <h6 class="text-warning mb-3">
+                            <i class="bi bi-clock"></i> Chèques à Encaisser
+                        </h6>
+                        {% for cheque in cheques_garantie %}
+                            {% if not cheque.est_en_retard %}
+                            <div class="card border-warning mb-2">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <small class="fw-bold">Chèque {{ cheque.numero }}</small>
+                                            <br>
+                                            <small class="text-success">{{ cheque.montant|floatformat:2 }} DH</small>
+                                            <br>
+                                            <small class="text-muted">{{ cheque.banque }}</small>
+                                            <br>
+                                            <small class="text-muted">Échéance: {{ cheque.date_echeance|date:"d/m/Y" }}</small>
+                                            <br>
+                                            <!-- Statut du chèque basé sur les règlements -->
+                                            {% for reglement in reglements %}
+                                                {% if reglement.commentaire|slice:":5" == "Effet" and cheque.numero in reglement.commentaire %}
+                                                    {% if reglement.statut == 'verse' %}
+                                                        <span class="badge bg-success badge-sm">
+                                                            <i class="bi bi-check-circle"></i> Versé
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning badge-sm">
+                                                            <i class="bi bi-clock"></i> Non versé
+                                                        </span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'gestion_credits:cheque_garantie_update' cheque.pk %}" 
+                                               class="btn btn-outline-info btn-sm" title="Modifier">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'gestion_credits:cheque_garantie_delete' cheque.pk %}" 
+                                               class="btn btn-outline-danger btn-sm" title="Supprimer"
+                                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce chèque de garantie ?')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Chèques En Retard -->
+                    {% with cheques_retard=cheques_garantie|dictsort:"date_echeance" %}
+                    {% if cheques_retard %}
+                    <div class="mb-4">
+                        <h6 class="text-danger mb-3">
+                            <i class="bi bi-exclamation-triangle"></i> Chèques En Retard
+                        </h6>
+                        {% for cheque in cheques_retard %}
+                            {% if cheque.est_en_retard %}
+                            <div class="card border-danger mb-2">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <small class="fw-bold">Chèque {{ cheque.numero }}</small>
+                                            <br>
+                                            <small class="text-success">{{ cheque.montant|floatformat:2 }} DH</small>
+                                            <br>
+                                            <small class="text-muted">{{ cheque.banque }}</small>
+                                            <br>
+                                            <small class="text-danger">Échéance: {{ cheque.date_echeance|date:"d/m/Y" }}</small>
+                                            <br>
+                                            <span class="badge bg-danger badge-sm">EN RETARD</span>
+                                            <br>
+                                            <!-- Statut du chèque basé sur les règlements -->
+                                            {% for reglement in reglements %}
+                                                {% if reglement.commentaire|slice:":5" == "Effet" and cheque.numero in reglement.commentaire %}
+                                                    {% if reglement.statut == 'verse' %}
+                                                        <span class="badge bg-success badge-sm">
+                                                            <i class="bi bi-check-circle"></i> Versé
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning badge-sm">
+                                                            <i class="bi bi-clock"></i> Non versé
+                                                        </span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'gestion_credits:cheque_garantie_update' cheque.pk %}" 
+                                               class="btn btn-outline-info btn-sm" title="Modifier">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'gestion_credits:cheque_garantie_delete' cheque.pk %}" 
+                                               class="btn btn-outline-danger btn-sm" title="Supprimer"
+                                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce chèque de garantie ?')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                {% else %}
+                <div class="text-center py-2">
+                    <i class="bi bi-bank text-muted" style="font-size: 1.5rem;"></i>
+                    <p class="text-muted mt-1 mb-2 small">Aucun chèque de garantie</p>
+                </div>
+                {% endif %}
+                
+                <div class="text-center">
+                    <a href="{% url 'gestion_credits:cheque_garantie_create' credit.pk %}" class="btn btn-info btn-sm">
+                        <i class="bi bi-plus-circle"></i> Ajouter un chèque
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contenu principal -->
+    <div class="col-md-8">
+        <!-- Section des Règlements - Toujours visible -->
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-cash-coin text-success"></i>
+                    Historique des Paiements
+                </h5>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'gestion_credits:echeance_create_for_credit' credit.pk %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> + Ajouter un Paiement
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if reglements %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Commentaire</th>
+                                <th>Agent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reglement in reglements %}
+                            <tr>
+                                <td>{{ reglement.date_reglement|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if reglement.mode_paiement == 'especes' %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-cash"></i> Espèces
+                                        </span>
+                                    {% elif reglement.mode_paiement == 'cheque' %}
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-bank"></i> Effet
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ reglement.get_mode_paiement_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong class="text-success">{{ reglement.montant|floatformat:2 }} DH</strong>
+                                </td>
+                                <td>
+                                    {% if reglement.mode_paiement == 'cheque' %}
+                                        {% if reglement.statut == 'verse' %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> Versé
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning">
+                                                <i class="bi bi-clock"></i> Non versé
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-secondary">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ reglement.commentaire|truncatechars:50|default:"-" }}</small>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ reglement.agent.username }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Résumé des règlements -->
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center py-2">
+                                <h5 class="mb-0">{{ total_reglements|floatformat:2 }} DH</h5>
+                                <small>Total versé</small>
+                                <br>
+                                <small class="text-light">(Espèces + Chèques versés)</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% if total_cheques_non_verses > 0 %}
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body text-center py-2">
+                                <h5 class="mb-0">{{ total_cheques_non_verses|floatformat:2 }} DH</h5>
+                                <small>Chèques non versés</small>
+                                <br>
+                                <small class="text-dark">(Non comptabilisés)</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center py-2">
+                                <h5 class="mb-0">{{ reste_a_payer|floatformat:2 }} DH</h5>
+                                <small>Reste à payer</small>
+                                <br>
+                                <small class="text-light">(Basé sur versés)</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-md-4">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center py-2">
+                                <h5 class="mb-0">{{ reste_a_payer|floatformat:2 }} DH</h5>
+                                <small>Reste à payer</small>
+                                <br>
+                                <small class="text-light">(Basé sur versés)</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center py-2">
+                                <h5 class="mb-0">{{ credit.montant_total|floatformat:2 }} DH</h5>
+                                <small>Montant total</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-cash-coin text-muted" style="font-size: 2rem;"></i>
+                    <p class="text-muted mt-2">Aucun paiement enregistré</p>
+                    <a href="{% url 'gestion_credits:echeance_create_for_credit' credit.pk %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> + Premier Paiement
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Section pour verser les chèques de garantie -->
+        {% if cheques_garantie %}
+        <div class="mt-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Verser les Chèques de Garantie
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        Le client peut demander à verser un ou plusieurs chèques de garantie à une date négociée.
+                    </p>
+                    <div class="row">
+                        {% for cheque in cheques_garantie %}
+                        <div class="col-md-6 mb-2">
+                            <div class="card border-light">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="fw-bold">Chèque {{ cheque.numero }}</small>
+                                            <br>
+                                            <small class="text-success">{{ cheque.montant|floatformat:2 }} DH</small>
+                                        </div>
+                                        <button class="btn btn-warning btn-sm" 
+                                                onclick="verserChequeGarantie({{ cheque.pk }}, '{{ cheque.numero }}', {{ cheque.montant }})">
+                                            <i class="bi bi-arrow-repeat"></i> Verser
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal pour verser un chèque de garantie -->
+<div class="modal fade" id="modalVerserCheque" tabindex="-1" aria-labelledby="modalVerserChequeLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalVerserChequeLabel">Verser un Chèque de Garantie</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formVerserCheque" method="post" action="{% url 'gestion_credits:reglement_create' credit.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="cheque_garantie_id" id="chequeGarantieId">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Chèque sélectionné :</label>
+                        <div class="form-control-plaintext" id="chequeInfo"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="montant" class="form-label">Montant à verser *</label>
+                        <input type="number" class="form-control" id="montant" name="montant" step="0.01" required>
+                        <div class="form-text">Montant maximum autorisé pour ce chèque</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="date_reglement" class="form-label">Date de versement *</label>
+                        <input type="date" class="form-control" id="date_reglement" name="date_reglement" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="commentaire" class="form-label">Commentaire</label>
+                        <textarea class="form-control" id="commentaire" name="commentaire" rows="2" 
+                                  placeholder="Ex: Versement du chèque de garantie n°..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" form="formVerserCheque" class="btn btn-warning">
+                    <i class="bi bi-arrow-repeat"></i> Verser le Chèque
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function verserChequeGarantie(chequeId, numero, montant) {
+    document.getElementById('chequeGarantieId').value = chequeId;
+    document.getElementById('chequeInfo').innerHTML = `Chèque n°${numero} - ${montant} DH`;
+    document.getElementById('montant').value = montant;
+    document.getElementById('montant').max = montant;
+    document.getElementById('date_reglement').value = new Date().toISOString().split('T')[0];
+    document.getElementById('commentaire').value = `Versement du chèque de garantie n°${numero}`;
+    
+    var modal = new bootstrap.Modal(document.getElementById('modalVerserCheque'));
+    modal.show();
+}
+</script>
+{% endblock %}

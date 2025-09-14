@@ -1,0 +1,591 @@
+{% extends 'gestion_credits/base.html' %}
+{% load static %}
+
+{% block title %}Créer un Crédit - Sanlam Crédits{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'gestion_credits/css/credit_form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-credit-card text-primary"></i>
+        {% if credit_type == 'unique' %}
+            Créer un Crédit Unique
+        {% else %}
+            Créer un Crédit Divisé
+        {% endif %}
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'gestion_credits:credit_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour aux crédits
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    {% if credit_type == 'unique' %}
+                        Informations du crédit unique
+                    {% else %}
+                        Informations du crédit divisé
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="creditForm">
+                    {% csrf_token %}
+                    
+                    <!-- Informations du client -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-person"></i> Informations du client
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.client.id_for_label }}" class="form-label">
+                                    <i class="bi bi-person-check"></i> Client *
+                                </label>
+                                {{ form.client }}
+                                {% if form.client.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.client.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <a href="{% url 'gestion_credits:client_create' %}" class="text-decoration-none">
+                                        <i class="bi bi-plus-circle"></i> Créer un nouveau client
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.numero_police.id_for_label }}" class="form-label">
+                                    <i class="bi bi-file-earmark-text"></i> Numéro de police *
+                                </label>
+                                {{ form.numero_police }}
+                                {% if form.numero_police.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.numero_police.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i> Numéro unique attribué par l'agent Sanlam
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Informations du crédit -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-credit-card"></i> Informations du crédit
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.montant_total.id_for_label }}" class="form-label">
+                                    <i class="bi bi-currency-exchange"></i> Montant total (DH) *
+                                </label>
+                                {{ form.montant_total }}
+                                {% if form.montant_total.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.montant_total.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">
+                                    <i class="bi bi-text-paragraph"></i> Description (optionnel)
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.description.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if credit_type == 'unique' %}
+                    <!-- Configuration de la durée pour crédit unique -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-calendar"></i> Configuration de l'échéance
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.type_duree.id_for_label }}" class="form-label">
+                                    <i class="bi bi-clock"></i> Type de durée *
+                                </label>
+                                {{ form.type_duree }}
+                                {% if form.type_duree.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.type_duree.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Section durée -->
+                        <div class="col-12" id="duree-section">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.duree_valeur.id_for_label }}" class="form-label">
+                                            <i class="bi bi-123"></i> Valeur de la durée *
+                                        </label>
+                                        {{ form.duree_valeur }}
+                                        {% if form.duree_valeur.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.duree_valeur.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.type_unite.id_for_label }}" class="form-label">
+                                            <i class="bi bi-calendar-week"></i> Unité de durée *
+                                        </label>
+                                        {{ form.type_unite }}
+                                        {% if form.type_unite.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.type_unite.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Section date exacte -->
+                        <div class="col-12" id="date-exacte-section" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.date_echeance.id_for_label }}" class="form-label">
+                                        <i class="bi bi-calendar-date"></i> Date d'échéance exacte *
+                                    </label>
+                                    {{ form.date_echeance }}
+                                    {% if form.date_echeance.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.date_echeance.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Casier des informations de chèque de garantie -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-bank"></i> Chèque de garantie (optionnel)
+                            </h6>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    {{ form.has_cheque_garantie }}
+                                    <label class="form-check-label" for="{{ form.has_cheque_garantie.id_for_label }}">
+                                        <i class="bi bi-check-circle text-success"></i> Le client fournit un chèque de garantie
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Section des détails du chèque (masquée par défaut) -->
+                        <div class="col-12" id="cheque-garantie-section" style="display: none;">
+                            <div class="card border-primary">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0 text-primary">
+                                        <i class="bi bi-bank2"></i> Détails du chèque de garantie
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.numero_cheque_garantie.id_for_label }}" class="form-label">
+                                                <i class="bi bi-123"></i> Numéro de référence du chèque *
+                                            </label>
+                                            {{ form.numero_cheque_garantie }}
+                                            {% if form.numero_cheque_garantie.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.numero_cheque_garantie.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.banque_garantie.id_for_label }}" class="form-label">
+                                                <i class="bi bi-bank"></i> Banque émettrice *
+                                            </label>
+                                            {{ form.banque_garantie }}
+                                            {% if form.banque_garantie.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.banque_garantie.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.date_emission_garantie.id_for_label }}" class="form-label">
+                                                <i class="bi bi-calendar"></i> Date d'émission du chèque *
+                                            </label>
+                                            {{ form.date_emission_garantie }}
+                                            {% if form.date_emission_garantie.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.date_emission_garantie.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.date_reglement_prevu_garantie.id_for_label }}" class="form-label">
+                                                <i class="bi bi-calendar-check"></i> Date prévue de règlement *
+                                            </label>
+                                            {{ form.date_reglement_prevu_garantie }}
+                                            {% if form.date_reglement_prevu_garantie.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.date_reglement_prevu_garantie.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12 mb-3">
+                                            <label for="{{ form.remarques_garantie.id_for_label }}" class="form-label">
+                                                <i class="bi bi-text-paragraph"></i> Remarques (optionnel)
+                                            </label>
+                                            {{ form.remarques_garantie }}
+                                            {% if form.remarques_garantie.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.remarques_garantie.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if credit_type == 'divise' %}
+                    <!-- Configuration du crédit divisé -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-collection"></i> Configuration du crédit divisé
+                            </h6>
+                        </div>
+                        
+                        <!-- Nombre de parties -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.nombre_parties.id_for_label }}" class="form-label">
+                                    <i class="bi bi-123"></i> Nombre de parties *
+                                </label>
+                                {{ form.nombre_parties }}
+                                {% if form.nombre_parties.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.nombre_parties.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">{{ form.nombre_parties.help_text }}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Type de garantie -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-bank"></i> Type de garantie *
+                                </label>
+                                <div class="form-check">
+                                    {{ form.type_garantie }}
+                                </div>
+                                {% if form.type_garantie.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.type_garantie.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section garantie unique -->
+                    <div class="row mb-4" id="garantie-unique-section" style="display: none;">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-1-circle"></i> Chèque de garantie unique
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.numero_cheque_unique.id_for_label }}" class="form-label">
+                                    <i class="bi bi-123"></i> Numéro de référence du chèque *
+                                </label>
+                                {{ form.numero_cheque_unique }}
+                                {% if form.numero_cheque_unique.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.numero_cheque_unique.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.banque_unique.id_for_label }}" class="form-label">
+                                    <i class="bi bi-bank"></i> Banque émettrice *
+                                </label>
+                                {{ form.banque_unique }}
+                                {% if form.banque_unique.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.banque_unique.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.date_emission_unique.id_for_label }}" class="form-label">
+                                    <i class="bi bi-calendar-event"></i> Date d'émission *
+                                </label>
+                                {{ form.date_emission_unique }}
+                                {% if form.date_emission_unique.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.date_emission_unique.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.montant_garantie_unique.id_for_label }}" class="form-label">
+                                    <i class="bi bi-currency-exchange"></i> Montant de la garantie (DH) *
+                                </label>
+                                {{ form.montant_garantie_unique }}
+                                {% if form.montant_garantie_unique.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.montant_garantie_unique.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section chèques échelonnés -->
+                    <div class="row mb-4" id="cheques-echelonnes-section" style="display: none;">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-collection"></i> Chèques échelonnés
+                            </h6>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Note :</strong> Remplissez les informations pour chaque partie (2 à 5) selon le nombre de parties sélectionné.
+                            </div>
+                        </div>
+                        
+                        <!-- Parties 2 à 5 -->
+                        <div class="col-12" id="parties-container">
+                            <!-- Les parties seront générées dynamiquement par JavaScript -->
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Boutons d'action -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'gestion_credits:credit_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> 
+                            {% if credit_type == 'unique' %}
+                                Créer le Crédit Unique
+                            {% else %}
+                                Créer le Crédit Divisé
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des crédits uniques
+    const typeDureeSelect = document.getElementById('{{ form.type_duree.id_for_label }}');
+    const dureeSection = document.getElementById('duree-section');
+    const dateExacteSection = document.getElementById('date-exacte-section');
+    
+    if (typeDureeSelect) {
+        function toggleSections() {
+            const selectedType = typeDureeSelect.value;
+            
+            if (selectedType === 'duree') {
+                dureeSection.style.display = 'block';
+                dateExacteSection.style.display = 'none';
+                
+                // Rendre les champs de durée obligatoires
+                document.getElementById('{{ form.duree_valeur.id_for_label }}').required = true;
+                document.getElementById('{{ form.type_unite.id_for_label }}').required = true;
+                document.getElementById('{{ form.date_echeance.id_for_label }}').required = false;
+            } else if (selectedType === 'date_exacte') {
+                dureeSection.style.display = 'none';
+                dateExacteSection.style.display = 'block';
+                
+                // Rendre le champ de date obligatoire
+                document.getElementById('{{ form.duree_valeur.id_for_label }}').required = false;
+                document.getElementById('{{ form.type_unite.id_for_label }}').required = false;
+                document.getElementById('{{ form.date_echeance.id_for_label }}').required = true;
+            }
+        }
+        
+        // Écouter les changements
+        typeDureeSelect.addEventListener('change', toggleSections);
+        
+        // Initialiser l'affichage
+        toggleSections();
+    }
+    
+    // Gestion du chèque de garantie pour crédit unique
+    const hasChequeGarantieCheckbox = document.getElementById('{{ form.has_cheque_garantie.id_for_label }}');
+    const chequeGarantieSection = document.getElementById('cheque-garantie-section');
+    
+    if (hasChequeGarantieCheckbox && chequeGarantieSection) {
+        function toggleChequeGarantieSection() {
+            if (hasChequeGarantieCheckbox.checked) {
+                chequeGarantieSection.style.display = 'block';
+                // Ajouter une classe pour l'animation
+                setTimeout(() => {
+                    chequeGarantieSection.classList.add('show');
+                }, 10);
+            } else {
+                chequeGarantieSection.classList.remove('show');
+                // Masquer après l'animation
+                setTimeout(() => {
+                    chequeGarantieSection.style.display = 'none';
+                }, 300);
+            }
+        }
+        
+        hasChequeGarantieCheckbox.addEventListener('change', toggleChequeGarantieSection);
+        
+        // Initialiser l'affichage
+        toggleChequeGarantieSection();
+    }
+    
+    // Gestion des crédits divisés
+    const nombrePartiesSelect = document.getElementById('{{ form.nombre_parties.id_for_label }}');
+    const typeGarantieRadios = document.querySelectorAll('input[name="{{ form.type_garantie.name }}"]');
+    const garantieUniqueSection = document.getElementById('garantie-unique-section');
+    const chequesEchelonnesSection = document.getElementById('cheques-echelonnes-section');
+    const partiesContainer = document.getElementById('parties-container');
+    
+    if (nombrePartiesSelect && typeGarantieRadios.length > 0) {
+        function toggleGarantieSections() {
+            const selectedType = document.querySelector('input[name="{{ form.type_garantie.name }}"]:checked').value;
+            
+            if (selectedType === 'unique') {
+                garantieUniqueSection.style.display = 'block';
+                chequesEchelonnesSection.style.display = 'none';
+            } else {
+                garantieUniqueSection.style.display = 'none';
+                chequesEchelonnesSection.style.display = 'block';
+                generateParties();
+            }
+        }
+        
+        function generateParties() {
+            const nombreParties = parseInt(nombrePartiesSelect.value);
+            partiesContainer.innerHTML = '';
+            
+            for (let i = 2; i <= nombreParties; i++) {
+                const partieDiv = document.createElement('div');
+                partieDiv.className = 'card mb-3';
+                partieDiv.innerHTML = `
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <span class="badge bg-info me-2">Partie ${i}</span>
+                            <i class="bi bi-bank text-info"></i> Chèque de garantie
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-123"></i> Numéro de référence du chèque *
+                                </label>
+                                <input type="text" name="numero_cheque_${i}" class="form-control" required
+                                       placeholder="Numéro du chèque">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-bank"></i> Banque émettrice *
+                                </label>
+                                <input type="text" name="banque_${i}" class="form-control" required
+                                       placeholder="Ex: BMCE, Attijariwafa Bank...">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-calendar"></i> Date prévue de règlement *
+                                </label>
+                                <input type="date" name="date_reglement_prevu_${i}" class="form-control" required
+                                       min="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-text-paragraph"></i> Besoins/Remarques
+                                </label>
+                                <textarea name="besoins_cheque_${i}" class="form-control" rows="2"
+                                          placeholder="Description des besoins..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                partiesContainer.appendChild(partieDiv);
+            }
+        }
+        
+        // Écouter les changements
+        nombrePartiesSelect.addEventListener('change', function() {
+            if (document.querySelector('input[name="{{ form.type_garantie.name }}"]:checked')?.value === 'echelonne') {
+                generateParties();
+            }
+        });
+        
+        typeGarantieRadios.forEach(radio => {
+            radio.addEventListener('change', toggleGarantieSections);
+        });
+        
+        // Initialiser l'affichage
+        if (typeGarantieRadios.length > 0) {
+            toggleGarantieSections();
+        }
+    }
+});
+</script>
+{% endblock %}

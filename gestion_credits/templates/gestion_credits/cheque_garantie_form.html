@@ -1,0 +1,184 @@
+{% extends 'gestion_credits/base.html' %}
+{% load static %}
+
+{% block title %}Ajouter un chèque de garantie - {{ credit.numero_police }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-bank me-2"></i>
+                        Ajouter un chèque de garantie
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Informations du crédit</h6>
+                            <p><strong>Police :</strong> {{ credit.numero_police }}</p>
+                            <p><strong>Client :</strong> {{ credit.client.nom_complet }}</p>
+                            <p><strong>Montant total :</strong> {{ credit.montant_total }} DH</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">État du paiement</h6>
+                            <p><strong>Total payé :</strong> {{ credit.total_paye }} DH</p>
+                            <p><strong>Reste à payer :</strong> <span class="text-danger fw-bold">{{ credit.reste_a_payer }} DH</span></p>
+                        </div>
+                    </div>
+
+                    <form method="post" id="chequeGarantieForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.numero.id_for_label }}" class="form-label">
+                                        Numéro du chèque *
+                                    </label>
+                                    {{ form.numero }}
+                                    {% if form.numero.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.numero.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.montant.id_for_label }}" class="form-label">
+                                        Montant du chèque *
+                                    </label>
+                                    {{ form.montant }}
+                                    {% if form.montant.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.montant.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.banque.id_for_label }}" class="form-label">
+                                        Banque émettrice *
+                                    </label>
+                                    {{ form.banque }}
+                                    {% if form.banque.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.banque.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.date_emission.id_for_label }}" class="form-label">
+                                        Date d'émission *
+                                    </label>
+                                    {{ form.date_emission }}
+                                    {% if form.date_emission.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.date_emission.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.date_echeance.id_for_label }}" class="form-label">
+                                        Date d'échéance *
+                                    </label>
+                                    {{ form.date_echeance }}
+                                    {% if form.date_echeance.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.date_echeance.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.commentaire.id_for_label }}" class="form-label">
+                                        Commentaire
+                                    </label>
+                                    {{ form.commentaire }}
+                                    {% if form.commentaire.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.commentaire.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'gestion_credits:credit_detail' credit.pk %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Retour au crédit
+                            </a>
+                            <button type="submit" class="btn btn-info">
+                                <i class="bi bi-check-circle me-2"></i>Enregistrer le chèque
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateEmissionInput = document.getElementById('{{ form.date_emission.id_for_label }}');
+    const dateEcheanceInput = document.getElementById('{{ form.date_echeance.id_for_label }}');
+    
+    // Validation des dates
+    function validateDates() {
+        const dateEmission = new Date(dateEmissionInput.value);
+        const dateEcheance = new Date(dateEcheanceInput.value);
+        
+        if (dateEmission && dateEcheance && dateEmission > dateEcheance) {
+            dateEcheanceInput.setCustomValidity('La date d\'échéance doit être postérieure à la date d\'émission');
+        } else {
+            dateEcheanceInput.setCustomValidity('');
+        }
+    }
+    
+    dateEmissionInput.addEventListener('change', validateDates);
+    dateEcheanceInput.addEventListener('change', validateDates);
+    
+    // Validation du montant
+    const montantInput = document.getElementById('{{ form.montant.id_for_label }}');
+    montantInput.addEventListener('input', function() {
+        const valeur = parseFloat(this.value);
+        if (valeur <= 0) {
+            this.setCustomValidity('Le montant doit être supérieur à 0');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+});
+</script>
+{% endblock %}

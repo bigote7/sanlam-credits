@@ -1,0 +1,450 @@
+{% extends 'gestion_credits/base.html' %}
+{% load static %}
+
+{% block title %}Système de Paiement des Échéances - {{ credit.numero_police }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- En-tête -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="h2">
+                        <i class="bi bi-calendar-check text-primary"></i>
+                        Système de Paiement des Échéances
+                    </h1>
+                    <p class="text-muted">Crédit {{ credit.numero_police }} - {{ credit.client.nom_complet }}</p>
+                </div>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="{% url 'gestion_credits:credit_detail' credit.pk %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour au crédit
+                    </a>
+                </div>
+            </div>
+
+            <!-- Informations du crédit -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-info-circle"></i>
+                                Informations du Crédit
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Montant Total:</strong><br>
+                                    <span class="h5 text-success">{{ credit.montant_total|floatformat:2 }} DH</span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Reste à Payer:</strong><br>
+                                    <span class="h5 text-danger">{{ credit.reste_a_payer|floatformat:2 }} DH</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-cash-coin"></i>
+                                Total Déjà Payé
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center">
+                                <span class="h3 text-success">{{ credit.total_paye|floatformat:2 }} DH</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire principal -->
+            <div class="card shadow">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear"></i>
+                        Configuration du Système de Paiement
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="paiementForm">
+                        {% csrf_token %}
+                        
+                        <!-- Mode de Paiement -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="bi bi-credit-card"></i>
+                                    1. Mode de Paiement
+                                </h6>
+                                <div class="row">
+                                    {% for choice in form.mode_paiement %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check border rounded p-3 h-100 {% if choice.choice_value == 'especes' %}border-success{% else %}border-info{% endif %}">
+                                            {{ choice.tag }}
+                                            <label class="form-check-label h-100 d-flex flex-column justify-content-center" for="{{ choice.id_for_label }}">
+                                                <div class="text-center">
+                                                    {% if choice.choice_value == 'especes' %}
+                                                        <i class="bi bi-cash-coin text-success" style="font-size: 2rem;"></i>
+                                                        <h6 class="mt-2 text-success">Paiement en Espèces</h6>
+                                                        <small class="text-muted">Le client paie directement en espèces</small>
+                                                    {% else %}
+                                                        <i class="bi bi-bank text-info" style="font-size: 2rem;"></i>
+                                                        <h6 class="mt-2 text-info">Paiement par Effets</h6>
+                                                        <small class="text-muted">Chèques, virements ou autres moyens</small>
+                                                    {% endif %}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Type d'Échéance -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="bi bi-calendar-range"></i>
+                                    2. Type d'Échéance
+                                </h6>
+                                <div class="row">
+                                    {% for choice in form.type_echeance %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check border rounded p-3 h-100 {% if choice.choice_value == 'unique' %}border-warning{% else %}border-primary{% endif %}">
+                                            {{ choice.tag }}
+                                            <label class="form-check-label h-100 d-flex flex-column justify-content-center" for="{{ choice.id_for_label }}">
+                                                <div class="text-center">
+                                                    {% if choice.choice_value == 'unique' %}
+                                                        <i class="bi bi-1-circle text-warning" style="font-size: 2rem;"></i>
+                                                        <h6 class="mt-2 text-warning">Une seule échéance</h6>
+                                                        <small class="text-muted">Paiement en une fois</small>
+                                                    {% else %}
+                                                        <i class="bi bi-collection text-primary" style="font-size: 2rem;"></i>
+                                                        <h6 class="mt-2 text-primary">Plusieurs échéances</h6>
+                                                        <small class="text-muted">Paiement échelonné</small>
+                                                    {% endif %}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Montant Total (lecture seule) -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.montant_total.id_for_label }}" class="form-label">
+                                        <i class="bi bi-currency-exchange text-success"></i>
+                                        {{ form.montant_total.label }}
+                                    </label>
+                                    {{ form.montant_total }}
+                                    {% if form.montant_total.help_text %}
+                                        <div class="form-text">{{ form.montant_total.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Échéance Unique -->
+                        <div id="sectionEcheanceUnique" class="row mb-4" style="display: none;">
+                            <div class="col-12">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-1-circle"></i>
+                                            Configuration de l'Échéance Unique
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.montant_echeance_unique.id_for_label }}" class="form-label">
+                                                        {{ form.montant_echeance_unique.label }}
+                                                    </label>
+                                                    {{ form.montant_echeance_unique }}
+                                                    {% if form.montant_echeance_unique.errors %}
+                                                        <div class="text-danger">{{ form.montant_echeance_unique.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.date_echeance_unique.id_for_label }}" class="form-label">
+                                                        {{ form.date_echeance_unique.label }}
+                                                    </label>
+                                                    {{ form.date_echeance_unique }}
+                                                    {% if form.date_echeance_unique.errors %}
+                                                        <div class="text-danger">{{ form.date_echeance_unique.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Échéances Multiples -->
+                        <div id="sectionEcheancesMultiples" class="row mb-4" style="display: none;">
+                            <div class="col-12">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-collection"></i>
+                                            Configuration des Échéances Multiples
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.nombre_echeances.id_for_label }}" class="form-label">
+                                                        {{ form.nombre_echeances.label }}
+                                                    </label>
+                                                    {{ form.nombre_echeances }}
+                                                    {% if form.nombre_echeances.help_text %}
+                                                        <div class="form-text">{{ form.nombre_echeances.help_text }}</div>
+                                                    {% endif %}
+                                                    {% if form.nombre_echeances.errors %}
+                                                        <div class="text-danger">{{ form.nombre_echeances.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.frequence_paiement.id_for_label }}" class="form-label">
+                                                        {{ form.frequence_paiement.label }}
+                                                    </label>
+                                                    {{ form.frequence_paiement }}
+                                                    {% if form.frequence_paiement.errors %}
+                                                        <div class="text-danger">{{ form.frequence_paiement.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.date_premiere_echeance.id_for_label }}" class="form-label">
+                                                        {{ form.date_premiere_echeance.label }}
+                                                    </label>
+                                                    {{ form.date_premiere_echeance }}
+                                                    {% if form.date_premiere_echeance.errors %}
+                                                        <div class="text-danger">{{ form.date_premiere_echeance.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Aperçu de l'échéancier -->
+                                        <div id="apercuEcheancier" class="mt-3" style="display: none;">
+                                            <h6 class="text-primary">Aperçu de l'Échéancier</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Échéance</th>
+                                                            <th>Date</th>
+                                                            <th>Montant</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tableauEcheancier">
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Effets (visible seulement si mode effets) -->
+                        <div id="sectionEffets" class="row mb-4" style="display: none;">
+                            <div class="col-12">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-bank"></i>
+                                            Informations de l'Effet
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.numero_effet.id_for_label }}" class="form-label">
+                                                        {{ form.numero_effet.label }}
+                                                    </label>
+                                                    {{ form.numero_effet }}
+                                                    {% if form.numero_effet.errors %}
+                                                        <div class="text-danger">{{ form.numero_effet.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.banque_emetteur.id_for_label }}" class="form-label">
+                                                        {{ form.banque_emetteur.label }}
+                                                    </label>
+                                                    {{ form.banque_emetteur }}
+                                                    {% if form.banque_emetteur.errors %}
+                                                        <div class="text-danger">{{ form.banque_emetteur.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.date_emission_effet.id_for_label }}" class="form-label">
+                                                        {{ form.date_emission_effet.label }}
+                                                    </label>
+                                                    {{ form.date_emission_effet }}
+                                                    {% if form.date_emission_effet.errors %}
+                                                        <div class="text-danger">{{ form.date_emission_effet.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Commentaire -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.commentaire.id_for_label }}" class="form-label">
+                                        <i class="bi bi-chat-text"></i>
+                                        {{ form.commentaire.label }}
+                                    </label>
+                                    {{ form.commentaire }}
+                                    {% if form.commentaire.errors %}
+                                        <div class="text-danger">{{ form.commentaire.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'gestion_credits:credit_detail' credit.pk %}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-check-circle"></i> Créer le Système de Paiement
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modePaiementInputs = document.querySelectorAll('input[name="{{ form.mode_paiement.name }}"]');
+    const typeEcheanceInputs = document.querySelectorAll('input[name="{{ form.type_echeance.name }}"]');
+    const sectionEffets = document.getElementById('sectionEffets');
+    const sectionEcheanceUnique = document.getElementById('sectionEcheanceUnique');
+    const sectionEcheancesMultiples = document.getElementById('sectionEcheancesMultiples');
+    const nombreEcheancesInput = document.getElementById('{{ form.nombre_echeances.id_for_label }}');
+    const frequenceInput = document.getElementById('{{ form.frequence_paiement.id_for_label }}');
+    const datePremiereInput = document.getElementById('{{ form.date_premiere_echeance.id_for_label }}');
+    const apercuEcheancier = document.getElementById('apercuEcheancier');
+    const tableauEcheancier = document.getElementById('tableauEcheancier');
+    const montantTotal = parseFloat(document.getElementById('{{ form.montant_total.id_for_label }}').value);
+
+    // Gérer l'affichage selon le mode de paiement
+    function gererAffichageModePaiement() {
+        const modePaiement = document.querySelector('input[name="{{ form.mode_paiement.name }}"]:checked').value;
+        sectionEffets.style.display = modePaiement === 'effets' ? 'block' : 'none';
+    }
+
+    // Gérer l'affichage selon le type d'échéance
+    function gererAffichageTypeEcheance() {
+        const typeEcheance = document.querySelector('input[name="{{ form.type_echeance.name }}"]:checked').value;
+        sectionEcheanceUnique.style.display = typeEcheance === 'unique' ? 'block' : 'none';
+        sectionEcheancesMultiples.style.display = typeEcheance === 'multiple' ? 'block' : 'none';
+        
+        if (typeEcheance === 'multiple') {
+            genererApercuEcheancier();
+        } else {
+            apercuEcheancier.style.display = 'none';
+        }
+    }
+
+    // Générer l'aperçu de l'échéancier
+    function genererApercuEcheancier() {
+        const nombreEcheances = parseInt(nombreEcheancesInput.value) || 0;
+        const frequence = frequenceInput.value;
+        const datePremiere = datePremiereInput.value;
+        
+        if (nombreEcheances > 0 && frequence && datePremiere) {
+            const montantPartie = montantTotal / nombreEcheances;
+            let intervalleJours;
+            
+            switch(frequence) {
+                case 'hebdomadaire': intervalleJours = 7; break;
+                case 'bimensuelle': intervalleJours = 15; break;
+                case 'mensuelle': intervalleJours = 30; break;
+                case 'trimestrielle': intervalleJours = 90; break;
+                default: intervalleJours = 30;
+            }
+            
+            let html = '';
+            const datePremiereObj = new Date(datePremiere);
+            
+            for (let i = 0; i < nombreEcheances; i++) {
+                const dateEcheance = new Date(datePremiereObj);
+                dateEcheance.setDate(dateEcheance.getDate() + (i * intervalleJours));
+                
+                html += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${dateEcheance.toLocaleDateString('fr-FR')}</td>
+                        <td><strong class="text-success">${montantPartie.toFixed(2)} DH</strong></td>
+                    </tr>
+                `;
+            }
+            
+            tableauEcheancier.innerHTML = html;
+            apercuEcheancier.style.display = 'block';
+        } else {
+            apercuEcheancier.style.display = 'none';
+        }
+    }
+
+    // Écouter les changements
+    modePaiementInputs.forEach(input => {
+        input.addEventListener('change', gererAffichageModePaiement);
+    });
+    
+    typeEcheanceInputs.forEach(input => {
+        input.addEventListener('change', gererAffichageTypeEcheance);
+    });
+    
+    nombreEcheancesInput.addEventListener('input', genererApercuEcheancier);
+    frequenceInput.addEventListener('change', genererApercuEcheancier);
+    datePremiereInput.addEventListener('change', genererApercuEcheancier);
+
+    // Initialiser l'affichage
+    gererAffichageModePaiement();
+    gererAffichageTypeEcheance();
+});
+</script>
+{% endblock %}

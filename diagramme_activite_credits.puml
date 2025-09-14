@@ -1,0 +1,170 @@
+@startuml Diagramme d'Activité - Gestion des Crédits
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam activityBackgroundColor #F8F9FA
+skinparam activityBorderColor #6C757D
+skinparam activityDiamondBackgroundColor #FFF3CD
+skinparam activityDiamondBorderColor #FFC107
+skinparam activityStartColor #28A745
+skinparam activityEndColor #DC3545
+
+title **Diagramme d'Activité - Flux de Gestion des Crédits**\n*Processus complet de création et gestion des crédits*
+
+start
+
+:Utilisateur accède au système;
+:Authentification requise;
+
+if (Utilisateur authentifié ?) then (oui)
+    :Accès au dashboard principal;
+    
+    fork
+        :Afficher statistiques globales;
+        :Calculer totaux des crédits;
+        :Calculer montants payés/non réglés;
+    fork again
+        :Vérifier échéances du jour;
+        :Vérifier échéances en retard;
+        :Générer alertes automatiques;
+    end fork
+    
+    :Utilisateur choisit une action;
+    
+    if (Action choisie ?) then (Gérer Crédits)
+        :Accéder à la liste des crédits;
+        
+        if (Filtres appliqués ?) then (oui)
+            :Appliquer filtres de recherche;
+            :Filtrer par statut (payés/non réglés);
+            :Filtrer par type de crédit;
+        endif
+        
+        :Afficher crédits avec pagination;
+        
+        if (Action sur crédit ?) then (Voir détails)
+            :Afficher détails complets du crédit;
+            :Afficher échéances associées;
+            :Afficher historique des actions;
+        elseif (Action sur crédit ?) then (Créer nouveau)
+            :Choisir type de crédit;
+            
+            if (Type de crédit ?) then (Unique)
+                :Remplir formulaire crédit unique;
+                :Saisir montant, taux, durée;
+            else (Divisé)
+                :Remplir formulaire crédit divisé;
+                :Saisir montant total et nombre d'échéances;
+            endif
+            
+            :Valider les données;
+            
+            if (Données valides ?) then (oui)
+                :Créer le crédit en base;
+                :Générer numéro de police;
+                :Créer log d'action;
+                
+                if (Type de crédit ?) then (Divisé)
+                    :Créer échéances automatiquement;
+                    :Calculer montants des échéances;
+                    :Créer logs pour chaque échéance;
+                endif
+                
+                :Afficher message de succès;
+                :Rediriger vers liste des crédits;
+            else (non)
+                :Afficher erreurs de validation;
+                :Retourner au formulaire;
+            endif
+            
+        elseif (Action sur crédit ?) then (Modifier)
+            :Charger données du crédit;
+            :Modifier les champs;
+            :Valider et sauvegarder;
+            :Créer log de modification;
+            
+        elseif (Action sur crédit ?) then (Supprimer)
+            :Demander confirmation;
+            if (Confirmation ?) then (oui)
+                :Supprimer le crédit;
+                :Supprimer échéances associées;
+                :Créer log de suppression;
+            else (non)
+                :Annuler la suppression;
+            endif
+        endif
+        
+    elseif (Action choisie ?) then (Gérer Clients)
+        :Accéder à la liste des clients;
+        
+        if (Action sur client ?) then (Créer)
+            :Remplir formulaire client;
+            :Valider et sauvegarder;
+            :Créer log de création;
+        elseif (Action sur client ?) then (Modifier)
+            :Modifier données client;
+            :Sauvegarder modifications;
+            :Créer log de modification;
+        endif
+        
+    elseif (Action choisie ?) then (Gérer Échéances)
+        :Accéder aux échéances;
+        
+        if (Action sur échéance ?) then (Marquer comme payée)
+            :Changer statut est_traitee;
+            :Enregistrer date de traitement;
+            :Créer log de paiement;
+            :Vérifier si crédit entièrement payé;
+            
+        elseif (Action sur échéance ?) then (Reporter échéance)
+            :Saisir nouvelle date;
+            :Saisir raison du report;
+            :Créer log de report;
+        endif
+        
+    elseif (Action choisie ?) then (Historique Actions)
+        :Afficher historique complet;
+        :Filtrer par type d'action;
+        :Filtrer par date;
+        :Afficher détails des actions;
+    endif
+    
+    :Retour au dashboard;
+    
+else (non)
+    :Rediriger vers page de connexion;
+    :Demander identifiants;
+    
+    if (Identifiants valides ?) then (oui)
+        :Authentifier l'utilisateur;
+        :Créer session;
+        :Rediriger vers dashboard;
+    else (non)
+        :Afficher erreur d'authentification;
+        :Retourner au formulaire de connexion;
+    endif
+endif
+
+:Utilisateur continue à naviguer;
+
+if (Session active ?) then (oui)
+    :Maintenir la session;
+    :Continuer les opérations;
+else (non)
+    :Déconnexion automatique;
+    :Rediriger vers connexion;
+endif
+
+stop
+
+note right
+    **Points clés du processus :**
+    
+    1. **Authentification obligatoire** pour toutes les actions
+    2. **Logging automatique** de toutes les modifications
+    3. **Validation des données** avant sauvegarde
+    4. **Gestion des relations** entre modèles
+    5. **Notifications et alertes** automatiques
+    6. **Historique complet** de toutes les actions
+end note
+
+@enduml

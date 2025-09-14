@@ -1,0 +1,122 @@
+{% extends 'gestion_credits/base.html' %}
+
+{% block title %}{{ action }} Client - Sanlam Crédits{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-person-plus text-primary"></i>
+        {{ action }} un Client
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'gestion_credits:client_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Informations du client
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.nom.id_for_label }}" class="form-label">
+                                <i class="bi bi-person"></i> Nom *
+                            </label>
+                            {{ form.nom }}
+                            {% if form.nom.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.nom.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.prenom.id_for_label }}" class="form-label">
+                                <i class="bi bi-person"></i> Prénom *
+                            </label>
+                            {{ form.prenom }}
+                            {% if form.prenom.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.prenom.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.cin.id_for_label }}" class="form-label">
+                                <i class="bi bi-card-text"></i> CIN *
+                            </label>
+                            {{ form.cin }}
+                            {% if form.cin.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.cin.errors.0 }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Numéro de carte d'identité nationale (unique)</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.telephone.id_for_label }}" class="form-label">
+                                <i class="bi bi-telephone"></i> Téléphone *
+                            </label>
+                            {{ form.telephone }}
+                            {% if form.telephone.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.telephone.errors.0 }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Numéro de téléphone (unique)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            <i class="bi bi-envelope"></i> Email
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.email.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.adresse.id_for_label }}" class="form-label">
+                            <i class="bi bi-geo-alt"></i> Adresse
+                        </label>
+                        {{ form.adresse }}
+                        {% if form.adresse.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.adresse.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'gestion_credits:client_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ action }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

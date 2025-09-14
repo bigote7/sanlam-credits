@@ -1,0 +1,544 @@
+{% extends 'gestion_credits/base.html' %}
+
+{% block title %}Système d'Alertes - Paiements Proches{% endblock %}
+
+{% block extra_css %}
+<style>
+    .alerte-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+    
+    .alerte-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .alerte-urgence-critique {
+        border-left: 5px solid #dc3545;
+        background: linear-gradient(135deg, #fff5f5 0%, #fff6e6 100%);
+    }
+    
+    .alerte-urgence-importante {
+        border-left: 5px solid #fd7e14;
+        background: linear-gradient(135deg, #fff8f0 0%, #ffe8d1 100%);
+    }
+    
+    .alerte-urgence-informatif {
+        border-left: 5px solid #17a2b8;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card.critique {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+    
+    .stat-card.importante {
+        background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);
+    }
+    
+    .stat-card.informatif {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    }
+    
+    .urgence-badge {
+        font-size: 0.8rem;
+        font-weight: bold;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        text-transform: uppercase;
+    }
+    
+    .urgence-critique {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .urgence-importante {
+        background-color: #fd7e14;
+        color: white;
+    }
+    
+    .urgence-informatif {
+        background-color: #17a2b8;
+        color: white;
+    }
+    
+    .filtres-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .search-box {
+        border-radius: 25px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .search-box:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action {
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-1px);
+    }
+    
+    .client-info {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .montant-highlight {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    
+    .date-highlight {
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête avec statistiques -->
+<div class="row mb-4">
+    <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="mb-0">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    Système d'Alertes - Paiements Proches
+                </h2>
+                <div class="text-muted">
+                    <i class="bi bi-calendar3"></i>
+                    {{ today|date:"d/m/Y" }}
+                </div>
+            </div>
+                        </div>
+                    </div>
+                    
+    <!-- Cartes de statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card critique">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Alertes Critiques</h6>
+                        <h3 class="mb-0">{{ alertes_critiques }}</h3>
+                        <small>{{ montant_total_urgent|floatformat:0 }} DH</small>
+                    </div>
+                    <i class="bi bi-exclamation-circle" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card importante">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Alertes Importantes</h6>
+                        <h3 class="mb-0">{{ alertes_importantes }}</h3>
+                        <small>{{ montant_total_important|floatformat:0 }} DH</small>
+                    </div>
+                    <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card informatif">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Alertes Informatives</h6>
+                        <h3 class="mb-0">{{ alertes_informatives }}</h3>
+                        <small>30 prochains jours</small>
+                    </div>
+                    <i class="bi bi-info-circle" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Total Alertes</h6>
+                        <h3 class="mb-0">{{ total_alertes }}</h3>
+                        <small>Actives</small>
+                    </div>
+                    <i class="bi bi-bell" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                </div>
+            </div>
+                        </div>
+                    </div>
+                    
+    <!-- Section des filtres -->
+    <div class="filtres-section">
+        <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                <label for="search" class="form-label">
+                    <i class="bi bi-search"></i> Recherche
+                </label>
+                <input type="text" class="form-control search-box" id="search" name="search" 
+                       value="{{ search_query }}" placeholder="Client, Police, Chèque...">
+            </div>
+            <div class="col-md-2">
+                <label for="urgence" class="form-label">
+                    <i class="bi bi-flag"></i> Urgence
+                </label>
+                <select class="form-select" id="urgence" name="urgence">
+                    <option value="">Toutes</option>
+                    <option value="critique" {% if urgence_filter == 'critique' %}selected{% endif %}>Critiques</option>
+                    <option value="importante" {% if urgence_filter == 'importante' %}selected{% endif %}>Importantes</option>
+                                </select>
+                            </div>
+            <div class="col-md-2">
+                <label for="agent" class="form-label">
+                    <i class="bi bi-person"></i> Agent
+                </label>
+                <select class="form-select" id="agent" name="agent">
+                    <option value="">Tous</option>
+                    {% for agent in agents_disponibles %}
+                        <option value="{{ agent.username }}" {% if agent_filter == agent.username %}selected{% endif %}>
+                            {{ agent.username }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel"></i> Filtrer
+                    </button>
+                        </div>
+                    </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                        <a href="{% url 'gestion_credits:alerte_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Réinitialiser
+                        </a>
+                </div>
+                    </div>
+                </form>
+    </div>
+
+    <!-- Liste des alertes -->
+    {% if page_obj %}
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul"></i>
+                        Alertes ({{ page_obj.start_index }}-{{ page_obj.end_index }} sur {{ total_alertes }})
+                    </h5>
+                    <div class="text-muted">
+                        <small>Triées par urgence et date d'échéance</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- Alertes -->
+        {% for alerte in page_obj %}
+            <div class="alerte-card alerte-urgence-{{ alerte.urgence }}">
+            <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">{{ alerte.titre }}</h6>
+                                <span class="urgence-badge urgence-{{ alerte.urgence }}">
+                                    {% if alerte.urgence == 'critique' %}
+                                        <i class="bi bi-exclamation-circle"></i> Critique
+                                    {% elif alerte.urgence == 'importante' %}
+                                        <i class="bi bi-exclamation-triangle"></i> Importante
+                                    {% else %}
+                                        <i class="bi bi-info-circle"></i> Informatif
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <p class="card-text mb-2">{{ alerte.message }}</p>
+                            
+                            <div class="client-info">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong><i class="bi bi-person"></i> Client:</strong>
+                                        <a href="{% url 'gestion_credits:client_detail' alerte.client.pk %}" 
+                                           class="text-decoration-none">
+                                            {{ alerte.client.nom_complet }}
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong><i class="bi bi-file-text"></i> Police:</strong>
+                                        <a href="{% url 'gestion_credits:credit_detail' alerte.credit.pk %}" 
+                                           class="text-decoration-none">
+                                            {{ alerte.credit.numero_police }}
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <strong><i class="bi bi-bank"></i> Banque:</strong>
+                                        <span class="text-muted">{{ alerte.banque }}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong><i class="bi bi-credit-card"></i> Chèque:</strong>
+                                        <span class="text-muted">{{ alerte.numero_cheque }}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong><i class="bi bi-currency-exchange"></i> Montant:</strong>
+                                        <span class="montant-highlight">{{ alerte.montant|floatformat:2 }} DH</span>
+                </div>
+                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-6">
+                                        <strong><i class="bi bi-calendar-event"></i> Échéance:</strong>
+                                        <span class="date-highlight">{{ alerte.date_rappel|date:"d/m/Y" }}</span>
+                                        {% if alerte.jours_retard %}
+                                            <span class="badge bg-danger ms-2">{{ alerte.jours_retard }} jour(s) en retard</span>
+                                        {% elif alerte.jours_restants %}
+                                            <span class="badge bg-warning ms-2">Dans {{ alerte.jours_restants }} jour(s)</span>
+                {% endif %}
+            </div>
+                                    <div class="col-md-6">
+                                        <strong><i class="bi bi-person-badge"></i> Agent:</strong>
+                                        <span class="text-muted">{{ alerte.agent.username }}</span>
+                                    </div>
+        </div>
+    </div>
+</div>
+
+                        <div class="col-md-4">
+                            <div class="d-flex flex-column h-100 justify-content-between">
+                                <div class="text-end">
+                                    {% if alerte.urgence == 'critique' %}
+                                        <div class="alert alert-danger mb-2">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            <strong>Action requise immédiatement</strong>
+            </div>
+                                    {% elif alerte.urgence == 'importante' %}
+                                        <div class="alert alert-warning mb-2">
+                                            <i class="bi bi-clock"></i>
+                                            <strong>À traiter cette semaine</strong>
+                </div>
+                {% else %}
+                                        <div class="alert alert-info mb-2">
+                                            <i class="bi bi-calendar-check"></i>
+                                            <strong>Planification recommandée</strong>
+                </div>
+                {% endif %}
+            </div>
+                                
+                                <div class="action-buttons">
+                                    <a href="{% url 'gestion_credits:credit_detail' alerte.credit.pk %}" 
+                                       class="btn btn-primary btn-action">
+                                        <i class="bi bi-eye"></i> Voir Crédit
+                                    </a>
+                                    <a href="{% url 'gestion_credits:echeance_create_for_credit' alerte.credit.pk %}" 
+                                       class="btn btn-success btn-action">
+                                        <i class="bi bi-plus-circle"></i> Ajouter Paiement
+                                    </a>
+                                    <button class="btn btn-outline-secondary btn-action" 
+                                            onclick="marquerTraitee('{{ alerte.objet.id }}')">
+                                        <i class="bi bi-check-circle"></i> Marquer Traitée
+                                    </button>
+        </div>
+    </div>
+            </div>
+        </div>
+    </div>
+</div>
+                            {% endfor %}
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+            <nav aria-label="Navigation des alertes" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if urgence_filter %}&urgence={{ urgence_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if urgence_filter %}&urgence={{ urgence_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if urgence_filter %}&urgence={{ urgence_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if urgence_filter %}&urgence={{ urgence_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if urgence_filter %}&urgence={{ urgence_filter }}{% endif %}{% if agent_filter %}&agent={{ agent_filter }}{% endif %}">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+        <!-- État vide -->
+        <div class="empty-state">
+            <i class="bi bi-check-circle text-success"></i>
+            <h4>Aucune alerte active</h4>
+            <p class="text-muted">
+                Tous les paiements sont à jour ou ont été traités.<br>
+                Vérifiez régulièrement pour de nouvelles alertes.
+            </p>
+            <a href="{% url 'gestion_credits:dashboard' %}" class="btn btn-primary">
+                <i class="bi bi-house"></i> Retour au Tableau de Bord
+            </a>
+                </div>
+                {% endif %}
+</div>
+
+<!-- Modal pour marquer comme traitée -->
+<div class="modal fade" id="modalTraitee" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Marquer l'alerte comme traitée</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir marquer cette alerte comme traitée ?</p>
+                <p class="text-muted">Cette action peut être annulée depuis l'historique des actions.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success" id="btnConfirmerTraitee">
+                    <i class="bi bi-check-circle"></i> Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function marquerTraitee(alerteId) {
+    // Afficher le modal de confirmation
+    const modal = new bootstrap.Modal(document.getElementById('modalTraitee'));
+    modal.show();
+    
+    // Gérer la confirmation
+    document.getElementById('btnConfirmerTraitee').onclick = function() {
+        // Ici vous pouvez ajouter la logique pour marquer l'alerte comme traitée
+        // Par exemple, faire un appel AJAX à une vue Django
+        
+        // Fermer le modal
+        modal.hide();
+        
+        // Afficher un message de succès
+        showNotification('Alerte marquée comme traitée avec succès', 'success');
+        
+        // Recharger la page après un délai
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    };
+}
+
+function showNotification(message, type) {
+    // Créer une notification toast
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    // Ajouter au conteneur de toasts
+    const container = document.createElement('div');
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.appendChild(toast);
+    document.body.appendChild(container);
+    
+    // Afficher le toast
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Supprimer après affichage
+    toast.addEventListener('hidden.bs.toast', () => {
+        container.remove();
+    });
+}
+
+// Auto-refresh des alertes critiques toutes les 5 minutes
+setInterval(() => {
+    const alertesCritiques = document.querySelectorAll('.alerte-urgence-critique');
+    if (alertesCritiques.length > 0) {
+        // Recharger seulement si il y a des alertes critiques
+        location.reload();
+    }
+}, 300000); // 5 minutes
+</script>
+{% endblock %}

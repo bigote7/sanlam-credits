@@ -1,0 +1,365 @@
+/* Styles pour le formulaire de création d'échéances */
+
+.echeance-card {
+    border-left: 4px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.echeance-card:hover {
+    border-left-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.1);
+}
+
+.echeance-card:nth-child(1) {
+    border-left-color: #28a745;
+}
+
+.echeance-card:nth-child(2) {
+    border-left-color: #17a2b8;
+}
+
+.echeance-card:nth-child(3) {
+    border-left-color: #6f42c1;
+}
+
+.echeance-card:nth-child(4) {
+    border-left-color: #fd7e14;
+}
+
+.echeance-card:nth-child(5) {
+    border-left-color: #e83e8c;
+}
+
+/* Styles pour les montants */
+.montant-input {
+    font-weight: 600;
+    color: #495057;
+}
+
+.montant-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Styles pour les dates */
+.date-echeance {
+    font-weight: 500;
+}
+
+.date-rappel {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 0.875em;
+}
+
+/* Styles pour le résumé des montants */
+#montant-resume {
+    font-size: 0.9em;
+}
+
+#total-saisi {
+    color: #007bff;
+}
+
+#difference.text-success {
+    color: #28a745 !important;
+}
+
+#difference.text-danger {
+    color: #dc3545 !important;
+}
+
+/* Styles pour les boutons */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Styles pour les alertes */
+.alert {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+/* Styles pour les badges */
+.badge {
+    font-size: 0.8em;
+    padding: 0.5em 0.75em;
+}
+
+/* Styles pour les cartes */
+.card {
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Styles pour les champs de formulaire */
+.form-control {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Styles pour les labels */
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+/* Styles pour le texte d'aide */
+.form-text {
+    color: #6c757d;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+}
+
+/* Styles pour les icônes */
+.bi {
+    margin-right: 0.5rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .echeance-card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn-toolbar {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Animation pour les cartes */
+.echeance-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Styles pour le bouton de soumission */
+#submit-btn {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+#submit-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+#submit-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Styles pour les messages de validation */
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+}
+
+/* Styles pour les informations du crédit */
+.card-header.bg-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+.card-header.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+/* Styles pour les liens */
+a.text-decoration-none:hover {
+    text-decoration: underline !important;
+}
+
+/* Styles pour les montants */
+.h5.text-success {
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour les badges de statut */
+.badge.bg-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+}
+
+.badge.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+/* Styles pour les champs d'effet */
+#champs-effet {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+#champs-effet.active {
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+}
+
+#champs-effet h6 {
+    color: #17a2b8;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+/* Styles pour la validation des champs */
+.form-control.is-valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Styles pour l'alerte d'effet */
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #ffc107;
+    color: #856404;
+}
+
+.alert-warning i {
+    color: #856404;
+}
+
+/* Styles pour les champs d'effet spécifiques */
+#champs-effet .form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+#champs-effet .form-text {
+    color: #6c757d;
+    font-size: 0.8em;
+    font-style: italic;
+}
+
+/* Animation pour l'apparition des champs d'effet */
+#champs-effet {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Styles pour les boutons radio améliorés */
+.form-check-input:checked {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+}
+
+.form-check-label {
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.form-check-label:hover {
+    color: #17a2b8;
+}
+
+/* Styles pour les icônes dans les labels */
+.form-label i {
+    margin-right: 0.5rem;
+    width: 16px;
+    text-align: center;
+}
+
+/* Responsive design pour les champs d'effet */
+@media (max-width: 768px) {
+    #champs-effet {
+        padding: 1rem;
+    }
+    
+    #champs-effet .row {
+        margin: 0;
+    }
+    
+    #champs-effet .col-md-6 {
+        padding: 0 0.5rem;
+    }
+}

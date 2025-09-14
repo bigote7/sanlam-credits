@@ -1,0 +1,82 @@
+@startuml Diagramme de Séquence - Gestion des Crédits
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceParticipantBackgroundColor #F8F9FA
+skinparam sequenceParticipantBorderColor #6C757D
+skinparam sequenceArrowColor #495057
+skinparam sequenceLifeLineBorderColor #6C757D
+skinparam sequenceLifeLineBackgroundColor #E9ECEF
+skinparam sequenceBoxBackgroundColor #E9ECEF
+skinparam sequenceBoxBorderColor #6C757D
+skinparam sequenceMessageAlignment center
+skinparam sequenceFontSize 13
+skinparam sequenceFontStyle bold
+
+title <b><font color="#007BFF" size=18>Diagramme de Séquence - Système de Gestion des Crédits</font></b>\n<i><font color="#495057" size=14>Flux d'interaction pour la gestion des crédits</font></i>
+
+participant "<b><font color='#17A2B8'>Utilisateur</font></b>" as Utilisateur
+participant "<b><font color='#6C757D'>Navigateur Web</font></b>" as Navigateur
+participant "<b><font color='#28A745'>Django<br/>Vue</font></b>" as Vue
+participant "<b><font color='#FFC107'>Modèles<br/>Django</font></b>" as Modeles
+participant "<b><font color='#DC3545'>Base de<br/>Données</font></b>" as BDD
+
+== <b>Authentification et Accès au Dashboard</b> ==
+Utilisateur -> Navigateur : <b>Connexion<br/>/login</b>
+Navigateur -> Vue : <b>POST<br/>Identifiants</b>
+Vue -> Modeles : <b>Vérifier utilisateur</b>
+Modeles -> BDD : <b>Requête SELECT<br/>User</b>
+BDD --> Modeles : <b>Données utilisateur</b>
+Modeles --> Vue : <b>Résultat authentification</b>
+Vue --> Navigateur : <b>Redirection dashboard</b>
+Navigateur --> Utilisateur : <b>Affichage dashboard</b>
+
+== <b>Affichage des Statistiques Spécialités</b> ==
+Navigateur -> Vue : <b>GET<br/>/dashboard</b>
+Vue -> Modeles : <b>Récupérer statistiques<br/>par spécialité</b>
+Modeles -> BDD : <b>SELECT<br/>Crédits, Clients, Échéances<br/>par spécialité</b>
+BDD --> Modeles : <b>Résultats agrégés</b>
+Modeles --> Vue : <b>Statistiques formatées</b>
+Vue --> Navigateur : <b>HTML avancé<br/>Tableaux, Graphiques</b>
+Navigateur --> Utilisateur : <b>Affichage interactif<br/>des statistiques</b>
+
+== <b>Gestion des Crédits</b> ==
+Utilisateur -> Navigateur : <b>Demande liste crédits</b>
+Navigateur -> Vue : <b>GET<br/>/credits</b>
+Vue -> Modeles : <b>Filtrer crédits<br/>par spécialité/statut</b>
+Modeles -> BDD : <b>SELECT<br/>Crédits filtrés</b>
+BDD --> Modeles : <b>Liste crédits</b>
+Modeles --> Vue : <b>Données crédits</b>
+Vue --> Navigateur : <b>HTML avancé<br/>Liste paginée</b>
+Navigateur --> Utilisateur : <b>Affichage liste crédits</b>
+
+alt <b>Voir Détails Crédit</b>
+    Utilisateur -> Navigateur : <b>Voir détails</b>
+    Navigateur -> Vue : <b>GET<br/>/credits/{id}</b>
+    Vue -> Modeles : <b>Récupérer crédit + échéances</b>
+    Modeles -> BDD : <b>SELECT<br/>Crédit, Échéances</b>
+    BDD --> Modeles : <b>Données crédit</b>
+    Modeles --> Vue : <b>Détails formatés</b>
+    Vue --> Navigateur : <b>HTML avancé<br/>Fiche crédit</b>
+    Navigateur --> Utilisateur : <b>Affichage fiche crédit</b>
+end
+
+alt <b>Créer Nouveau Crédit</b>
+    Utilisateur -> Navigateur : <b>Formulaire création</b>
+    Navigateur -> Vue : <b>POST<br/>Nouveau crédit</b>
+    Vue -> Modeles : <b>Valider et enregistrer</b>
+    Modeles -> BDD : <b>INSERT<br/>Nouveau crédit</b>
+    BDD --> Modeles : <b>Confirmation</b>
+    Modeles --> Vue : <b>Succès/erreur</b>
+    Vue --> Navigateur : <b>Message confirmation</b>
+    Navigateur --> Utilisateur : <b>Affichage résultat</b>
+end
+
+== <b>Alertes et Échéances</b> ==
+Vue -> Modeles : <b>Vérifier échéances du jour</b>
+Modeles -> BDD : <b>SELECT<br/>Échéances à venir/en retard</b>
+BDD --> Modeles : <b>Liste échéances</b>
+Modeles --> Vue : <b>Alertes générées</b>
+Vue --> Navigateur : <b>Affichage alertes</b>
+Navigateur --> Utilisateur : <b>Notification/alerte</b>
+
+@enduml

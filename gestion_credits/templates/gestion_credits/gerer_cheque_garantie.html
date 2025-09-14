@@ -1,0 +1,189 @@
+{% extends 'gestion_credits/base.html' %}
+
+{% block title %}Gérer Chèque de Garantie - Sanlam Crédits{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-bank text-info"></i>
+        Gérer le Chèque de Garantie
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'gestion_credits:credit_detail' cheque.echeance.credit.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour au crédit
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-bank"></i>
+                    Détails du Chèque de Garantie
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Informations du chèque -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Informations du Chèque</h6>
+                        <p><strong>Numéro :</strong> {{ cheque.numero_cheque }}</p>
+                        <p><strong>Banque :</strong> {{ cheque.banque }}</p>
+                        <p><strong>Montant :</strong> <span class="text-success fw-bold">{{ cheque.montant|floatformat:2 }} DH</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Dates</h6>
+                        <p><strong>Émission :</strong> {{ cheque.date_emission|date:"d/m/Y" }}</p>
+                        <p><strong>Règlement prévu :</strong> {{ cheque.date_reglement_prevu|date:"d/m/Y" }}</p>
+                        <p><strong>Statut :</strong> 
+                            <span class="badge bg-{% if cheque.statut == 'garantie' %}info{% elif cheque.statut == 'encaisser' %}warning{% elif cheque.statut == 'encaisse' %}success{% elif cheque.statut == 'reporte' %}secondary{% else %}danger{% endif %}">
+                                {{ cheque.get_statut_display }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                
+                {% if cheque.remarques %}
+                <div class="alert alert-secondary">
+                    <i class="bi bi-chat-text"></i>
+                    <strong>Remarques :</strong> {{ cheque.remarques }}
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <!-- Actions disponibles -->
+                <h6 class="text-muted mb-3">Actions Disponibles</h6>
+                
+                <div class="row">
+                    <!-- Action 1: Marquer pour encaissement -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="bi bi-bank text-warning" style="font-size: 2rem;"></i>
+                                <h6 class="mt-2">Encaisser le Chèque</h6>
+                                <p class="small text-muted">Marquer le chèque pour encaissement et créer une alerte de dépôt</p>
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="encaisser">
+                                    <button type="submit" class="btn btn-warning btn-sm">
+                                        <i class="bi bi-check-circle"></i> Marquer à Encaisser
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action 2: Contacter le client -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="bi bi-telephone text-info" style="font-size: 2rem;"></i>
+                                <h6 class="mt-2">Contacter le Client</h6>
+                                <p class="small text-muted">Créer une alerte pour contacter le client et demander le règlement en espèces</p>
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="contacter_client">
+                                    <button type="submit" class="btn btn-info btn-sm">
+                                        <i class="bi bi-telephone"></i> Contacter Client
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action 3: Reporter la date -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-secondary">
+                            <div class="card-body text-center">
+                                <i class="bi bi-calendar-plus text-secondary" style="font-size: 2rem;"></i>
+                                <h6 class="mt-2">Reporter la Date</h6>
+                                <p class="small text-muted">Reporter la date de règlement prévue</p>
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#reporterModal">
+                                    <i class="bi bi-calendar-plus"></i> Reporter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Informations du crédit et de l'échéance -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Informations du Crédit</h6>
+                        <p><strong>Client :</strong> {{ cheque.echeance.credit.client.nom_complet }}</p>
+                        <p><strong>Montant total :</strong> {{ cheque.echeance.credit.montant_total|floatformat:2 }} DH</p>
+                        <p><strong>Partie :</strong> {{ cheque.echeance.numero_partie }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Informations de l'Échéance</h6>
+                        <p><strong>Date d'échéance :</strong> {{ cheque.echeance.date_echeance|date:"d/m/Y" }}</p>
+                        <p><strong>Statut :</strong> 
+                            {% if cheque.echeance.est_traitee %}
+                            <span class="badge bg-success">Payée</span>
+                            {% else %}
+                            <span class="badge bg-warning">En attente</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour reporter la date -->
+<div class="modal fade" id="reporterModal" tabindex="-1" aria-labelledby="reporterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reporterModalLabel">
+                    <i class="bi bi-calendar-plus text-secondary"></i>
+                    Reporter la Date de Règlement
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reporter">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nouvelle_date" class="form-label">
+                            <i class="bi bi-calendar"></i> Nouvelle Date de Règlement
+                        </label>
+                        <input type="date" class="form-control" id="nouvelle_date" name="nouvelle_date" 
+                               min="{{ today|date:'Y-m-d' }}" required>
+                        <div class="form-text">La nouvelle date doit être dans le futur.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Confirmer le Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Définir la date minimale (demain)
+    const today = new Date();
+    today.setDate(today.getDate() + 1);
+    const tomorrow = today.toISOString().split('T')[0];
+    
+    const dateInput = document.getElementById('nouvelle_date');
+    if (dateInput) {
+        dateInput.min = tomorrow;
+    }
+});
+</script>
+{% endblock %}

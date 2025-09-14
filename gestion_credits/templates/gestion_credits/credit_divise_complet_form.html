@@ -1,0 +1,389 @@
+{% extends 'gestion_credits/base.html' %}
+
+{% block title %}Créer un Crédit Divisé - Sanlam Crédits{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-credit-card text-primary"></i>
+        Créer un Crédit Divisé
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'gestion_credits:credit_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour aux crédits
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle text-info"></i>
+                    Informations du Crédit
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="creditForm">
+                    {% csrf_token %}
+                    
+                    <!-- Informations de base -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.client.id_for_label }}" class="form-label">
+                                    <i class="bi bi-person text-primary"></i> Client *
+                                </label>
+                                {{ form.client }}
+                                {% if form.client.errors %}
+                                    <div class="text-danger">{{ form.client.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.numero_police.id_for_label }}" class="form-label">
+                                    <i class="bi bi-file-text text-primary"></i> Numéro de Police *
+                                </label>
+                                {{ form.numero_police }}
+                                {% if form.numero_police.errors %}
+                                    <div class="text-danger">{{ form.numero_police.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.montant_total.id_for_label }}" class="form-label">
+                                    <i class="bi bi-currency-dollar text-success"></i> Montant Total du Crédit (DH) *
+                                </label>
+                                {{ form.montant_total }}
+                                {% if form.montant_total.errors %}
+                                    <div class="text-danger">{{ form.montant_total.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.montant_especes.id_for_label }}" class="form-label">
+                                    <i class="bi bi-cash text-success"></i> Montant Payé en Espèces (DH) *
+                                </label>
+                                {{ form.montant_especes }}
+                                {% if form.montant_especes.errors %}
+                                    <div class="text-danger">{{ form.montant_especes.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calcul automatique du reste -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <strong>Montant Total:</strong> <span id="montantTotal">0</span> DH
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Montant Espèces:</strong> <span id="montantEspeces">0</span> DH
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Reste à Payer:</strong> <span id="resteAPayer" class="text-danger fw-bold">0</span> DH
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Explication du système de paiement -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-success">
+                                <h6 class="mb-2">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Comment fonctionne le paiement :</strong>
+                                </h6>
+                                <ul class="mb-0">
+                                    <li><strong>1.</strong> Le client paie d'abord <span class="text-success fw-bold">en espèces</span> (montant saisi ci-dessus)</li>
+                                    <li><strong>2.</strong> Le client donne des <span class="text-warning fw-bold">chèques de garantie</span> (pas des moyens de paiement)</li>
+                                    <li><strong>3.</strong> Le client devra revenir <span class="text-danger fw-bold">payer le reste en espèces</span> ou par d'autres moyens</li>
+                                    <li><strong>4.</strong> Les chèques de garantie ne seront <span class="text-danger fw-bold">JAMAIS encaissés</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Type de garantie -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-shield-check text-warning"></i>
+                                        Type de Garantie
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check mb-3">
+                                                {{ form.type_garantie.0 }}
+                                                <label class="form-check-label" for="{{ form.type_garantie.0.id_for_label }}">
+                                                    <i class="bi bi-1-circle text-primary"></i>
+                                                    Un seul chèque de garantie
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check mb-3">
+                                                {{ form.type_garantie.1 }}
+                                                <label class="form-check-label" for="{{ form.type_garantie.1.id_for_label }}">
+                                                    <i class="bi bi-collection text-success"></i>
+                                                    Plusieurs chèques de garantie
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Champs pour chèque unique -->
+                    <div id="champsChequeUnique" class="champs-garantie" style="display: none;">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-1-circle text-primary"></i>
+                                    Informations du Chèque de Garantie Unique
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.numero_cheque_unique.id_for_label }}" class="form-label">
+                                                Numéro de référence du chèque *
+                                            </label>
+                                            {{ form.numero_cheque_unique }}
+                                            {% if form.numero_cheque_unique.errors %}
+                                                <div class="text-danger">{{ form.numero_cheque_unique.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.banque_unique.id_for_label }}" class="form-label">
+                                                Banque émettrice *
+                                            </label>
+                                            {{ form.banque_unique }}
+                                            {% if form.banque_unique.errors %}
+                                                <div class="text-danger">{{ form.banque_unique.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="alert alert-warning mb-3">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            <strong>Important:</strong> Ce chèque de garantie ne sera PAS encaissé. Il sert uniquement de garantie. Le client devra venir payer le reste en espèces.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="{{ form.date_emission_unique.id_for_label }}" class="form-label">
+                                                Date d'émission *
+                                            </label>
+                                            {{ form.date_emission_unique }}
+                                            {% if form.date_emission_unique.errors %}
+                                                <div class="text-danger">{{ form.date_emission_unique.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="{{ form.montant_garantie_unique.id_for_label }}" class="form-label">
+                                                Montant de la garantie (DH) *
+                                            </label>
+                                            {{ form.montant_garantie_unique }}
+                                            {% if form.montant_garantie_unique.errors %}
+                                                <div class="text-danger">{{ form.montant_garantie_unique.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="{{ form.date_reglement_prevu_unique.id_for_label }}" class="form-label">
+                                                Date prévue de règlement *
+                                            </label>
+                                            {{ form.date_reglement_prevu_unique }}
+                                            {% if form.date_reglement_prevu_unique.errors %}
+                                                <div class="text-danger">{{ form.date_reglement_prevu_unique.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label for="{{ form.commentaire_unique.id_for_label }}" class="form-label">
+                                                Commentaire (optionnel)
+                                            </label>
+                                            {{ form.commentaire_unique }}
+                                            {% if form.commentaire_unique.errors %}
+                                                <div class="text-danger">{{ form.commentaire_unique.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Champs pour chèques multiples -->
+                    <div id="champsChequesMultiples" class="champs-garantie" style="display: none;">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-collection text-success"></i>
+                                    Configuration des Chèques Multiples
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.nombre_cheques.id_for_label }}" class="form-label">
+                                                Nombre de chèques de garantie *
+                                            </label>
+                                            {{ form.nombre_cheques }}
+                                            {% if form.nombre_cheques.errors %}
+                                                <div class="text-danger">{{ form.nombre_cheques.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Entre 2 et 10 chèques</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            <strong>Important:</strong> Les chèques de garantie ne sont PAS des moyens de paiement. Ils servent uniquement de garantie. Le client devra venir payer le reste en espèces ou par d'autres moyens.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Champs dynamiques pour les chèques multiples -->
+                                <div id="champsChequesMultiplesDetails" style="display: none;">
+                                    <hr>
+                                    <h6 class="mb-3">
+                                        <i class="bi bi-list-check text-primary"></i>
+                                        Détails des Chèques de Garantie
+                                    </h6>
+                                    
+                                    <!-- Les champs seront générés ici par JavaScript -->
+                                    <div id="listeChequesMultiples"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">
+                                    <i class="bi bi-text-paragraph text-primary"></i> Description du Crédit
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger">{{ form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bouton de soumission -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'gestion_credits:credit_list' %}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Annuler
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Créer le Crédit Divisé
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const montantTotalInput = document.getElementById('{{ form.montant_total.id_for_label }}');
+    const montantEspecesInput = document.getElementById('{{ form.montant_especes.id_for_label }}');
+    const typeGarantieInputs = document.querySelectorAll('input[name="{{ form.type_garantie.name }}"]');
+    const champsChequeUnique = document.getElementById('champsChequeUnique');
+    const champsChequesMultiples = document.getElementById('champsChequesMultiples');
+
+    // Fonction pour calculer le reste
+    function calculerReste() {
+        const montantTotal = parseFloat(montantTotalInput.value) || 0;
+        const montantEspeces = parseFloat(montantEspecesInput.value) || 0;
+        const reste = montantTotal - montantEspeces;
+        
+        document.getElementById('montantTotal').textContent = montantTotal.toFixed(2);
+        document.getElementById('montantEspeces').textContent = montantEspeces.toFixed(2);
+        document.getElementById('resteAPayer').textContent = reste.toFixed(2);
+        
+        // Mettre à jour le max du montant de garantie
+        const montantGarantieInput = document.getElementById('{{ form.montant_garantie_unique.id_for_label }}');
+        if (montantGarantieInput) {
+            montantGarantieInput.max = reste;
+        }
+    }
+
+    // Écouter les changements sur les montants
+    montantTotalInput.addEventListener('input', calculerReste);
+    montantEspecesInput.addEventListener('input', calculerReste);
+
+    // Gérer l'affichage des champs selon le type de garantie
+    function gererAffichageChamps() {
+        const typeGarantie = document.querySelector('input[name="{{ form.type_garantie.name }}"]:checked').value;
+        
+        if (typeGarantie === 'unique') {
+            champsChequeUnique.style.display = 'block';
+            champsChequesMultiples.style.display = 'none';
+        } else {
+            champsChequeUnique.style.display = 'none';
+            champsChequesMultiples.style.display = 'block';
+        }
+    }
+
+    // Écouter les changements sur le type de garantie
+    typeGarantieInputs.forEach(input => {
+        input.addEventListener('change', gererAffichageChamps);
+    });
+    
+    // Écouter les changements sur le nombre de chèques
+    const nombreChequesInput = document.getElementById('{{ form.nombre_cheques.id_for_label }}');
+    if (nombreChequesInput) {
+        nombreChequesInput.addEventListener('input', genererChampsChequesMultiples);
+    }
+
+    // Initialiser l'affichage
+    calculerReste();
+    gererAffichageChamps();
+});
+</script>
+{% endblock %}

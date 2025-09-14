@@ -1,0 +1,71 @@
+{% extends 'gestion_credits/base.html' %}
+{% load static %}
+
+{% block title %}Supprimer le chèque de garantie - {{ credit.numero_police }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Confirmer la suppression
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Attention !
+                        </h5>
+                        <p class="mb-0">
+                            Vous êtes sur le point de supprimer le chèque de garantie suivant :
+                        </p>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Numéro :</strong> {{ cheque.numero }}</p>
+                                    <p><strong>Montant :</strong> <span class="text-success fw-bold">{{ cheque.montant|floatformat:2 }} DH</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Banque :</strong> {{ cheque.banque }}</p>
+                                    <p><strong>Échéance :</strong> {{ cheque.date_echeance|date:"d/m/Y" }}</p>
+                                </div>
+                            </div>
+                            {% if cheque.commentaire %}
+                                <p><strong>Commentaire :</strong> {{ cheque.commentaire }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Impact de cette suppression :</h6>
+                        <ul class="mb-0">
+                            <li>Le chèque de garantie sera définitivement supprimé</li>
+                            <li>Aucun impact sur le montant total ou le reste à payer</li>
+                            <li>Cette action est irréversible</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'gestion_credits:credit_detail' credit.pk %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>Confirmer la suppression
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

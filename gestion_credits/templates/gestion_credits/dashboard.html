@@ -1,0 +1,803 @@
+{% extends 'gestion_credits/base.html' %}
+
+{% block title %}Tableau de Bord - Système de Paiements{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin: 0;
+    }
+    
+    .progress-ring {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+    
+    .alert-card {
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+    
+    .alert-card:hover {
+        transform: translateX(5px);
+    }
+    
+    .cheque-card {
+        border: 2px solid;
+        transition: all 0.3s ease;
+    }
+    
+    .cheque-card:hover {
+        transform: scale(1.02);
+    }
+    
+    .performance-badge {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête du tableau de bord -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+        <i class="bi bi-speedometer2 text-primary"></i>
+                        Tableau de Bord - Système de Paiements
+    </h1>
+                    <p class="text-muted mb-0">
+                        Vue d'ensemble des paiements et du recouvrement des crédits
+                    </p>
+                </div>
+                <div class="text-end">
+                    <h6 class="text-muted mb-1">Aujourd'hui</h6>
+                    <h4 class="text-primary mb-0">{{ today|date:"d/m/Y" }}</h4>
+                </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Cartes de statistiques principales -->
+<div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-primary text-white h-100">
+            <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="stat-value mb-1">{{ montant_total_credits|floatformat:0 }}</p>
+                            <p class="stat-label mb-0">Total Crédits (DH)</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-credit-card"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-success text-white h-100">
+            <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="stat-value mb-1">{{ total_paiements_verses|floatformat:0 }}</p>
+                            <p class="stat-label mb-0">Paiements Reçus (DH)</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-warning text-white h-100">
+            <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="stat-value mb-1">{{ total_cheques_en_attente|floatformat:0 }}</p>
+                            <p class="stat-label mb-0">Chèques en Attente (DH)</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-bank"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-info text-white h-100">
+            <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="stat-value mb-1">{{ taux_recouvrement|floatformat:1 }}%</p>
+                            <p class="stat-label mb-0">Taux de Recouvrement</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-graph-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Détail des paiements -->
+<div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-pie-chart text-primary"></i>
+                        Répartition des Paiements
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <h4 class="text-success mb-1">{{ total_paiements_especes|floatformat:0 }} DH</h4>
+                                <small class="text-muted">Espèces</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <h4 class="text-info mb-1">{{ total_paiements_cheques_verses|floatformat:0 }} DH</h4>
+                                <small class="text-muted">Chèques Versés</small>
+                            </div>
+                        </div>
+                    </div>
+                                         <div class="progress" style="height: 8px;">
+                         {% if montant_total_credits > 0 %}
+                             <div class="progress-bar bg-success" style="width: {{ pourcentage_especes }}%"></div>
+                             <div class="progress-bar bg-info" style="width: {{ pourcentage_cheques_verses }}%"></div>
+                         {% endif %}
+                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-people text-primary"></i>
+                        Répartition des Crédits
+                </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <h4 class="text-primary mb-1">{{ credits_uniques }}</h4>
+                                <small class="text-muted">Crédits Uniques</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <h4 class="text-secondary mb-1">{{ credits_divises }}</h4>
+                                <small class="text-muted">Crédits Divisés</small>
+                            </div>
+                        </div>
+                    </div>
+                                         <div class="progress" style="height: 8px;">
+                         {% if total_credits > 0 %}
+                             <div class="progress-bar bg-primary" style="width: {{ pourcentage_credits_uniques }}%"></div>
+                             <div class="progress-bar bg-secondary" style="width: {{ pourcentage_credits_divises }}%"></div>
+                         {% endif %}
+                     </div>
+                </div>
+                    </div>
+                </div>
+    </div>
+
+    <!-- Paiements du jour -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card stat-card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-calendar-check text-success"></i>
+                        Paiements Aujourd'hui 
+                        <span class="badge bg-success ms-2">{{ paiements_aujourd_hui.count }}</span>
+                    </h6>
+            </div>
+            <div class="card-body">
+                    {% if paiements_aujourd_hui %}
+                <div class="table-responsive">
+                            <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                        <th>Type</th>
+                                <th>Montant</th>
+                                        <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                    {% for paiement in paiements_aujourd_hui %}
+                            <tr>
+                                <td>
+                                            <strong>{{ paiement.credit.client.nom_complet }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ paiement.credit.numero_police }}</small>
+                                </td>
+                                <td>
+                                            {% if paiement.mode_paiement == 'especes' %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-cash"></i> Espèces
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-bank"></i> Chèque
+                                                </span>
+                                            {% endif %}
+                                </td>
+                                <td>
+                                            <strong class="text-primary">{{ paiement.montant|floatformat:2 }} DH</strong>
+                                </td>
+                                <td>
+                                            {% if paiement.statut == 'verse' %}
+                                                <span class="badge bg-success">Versé</span>
+                                    {% else %}
+                                                <span class="badge bg-warning">En attente</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                            <a href="{% url 'gestion_credits:credit_detail' paiement.credit.pk %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> Voir
+                                            </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                        <div class="text-end mt-3">
+                            <h6 class="text-success">
+                                Total du jour : <strong>{{ montant_paiements_aujourd_hui|floatformat:2 }} DH</strong>
+                            </h6>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                            <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">Aucun paiement aujourd'hui</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Chèques à échéance proche et en retard -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-header bg-warning text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Chèques à Échéance Proche (7 jours)
+                        <span class="badge bg-white text-warning ms-2">{{ cheques_echeance_proche.count }}</span>
+                </h6>
+            </div>
+            <div class="card-body">
+                    {% if cheques_echeance_proche %}
+                        {% for cheque in cheques_echeance_proche|slice:":3" %}
+                        <div class="cheque-card border-warning mb-2 p-2 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                                    <strong>{{ cheque.credit.client.nom_complet }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                        {{ cheque.numero }} - {{ cheque.banque }}
+                            </small>
+                        </div>
+                                <div class="text-end">
+                                    <span class="text-warning fw-bold">{{ cheque.montant|floatformat:2 }} DH</span>
+                                    <br>
+                                    <small class="text-warning">{{ cheque.date_echeance|date:"d/m/Y" }}</small>
+                                </div>
+                            </div>
+                    </div>
+                    {% endfor %}
+                        {% if cheques_echeance_proche.count > 3 %}
+                            <div class="text-center mt-2">
+                                <small class="text-muted">+{{ cheques_echeance_proche.count|add:"-3" }} autres chèques</small>
+                </div>
+                {% endif %}
+                {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2">Aucun chèque à échéance proche</p>
+                        </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-exclamation-circle"></i>
+                        Chèques en Retard
+                        <span class="badge bg-white text-danger ms-2">{{ cheques_en_retard.count }}</span>
+                </h6>
+            </div>
+            <div class="card-body">
+                    {% if cheques_en_retard %}
+                        {% for cheque in cheques_en_retard|slice:":3" %}
+                        <div class="cheque-card border-danger mb-2 p-2 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                                    <strong>{{ cheque.credit.client.nom_complet }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                        {{ cheque.numero }} - {{ cheque.banque }}
+                            </small>
+                        </div>
+                                <div class="text-end">
+                                    <span class="text-danger fw-bold">{{ cheque.montant|floatformat:2 }} DH</span>
+                                    <br>
+                                    <small class="text-danger">{{ cheque.date_echeance|date:"d/m/Y" }}</small>
+                                </div>
+                            </div>
+                    </div>
+                    {% endfor %}
+                        {% if cheques_en_retard.count > 3 %}
+                            <div class="text-center mt-2">
+                                <small class="text-muted">+{{ cheques_en_retard.count|add:"-3" }} autres chèques</small>
+                </div>
+                {% endif %}
+                {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2">Aucun chèque en retard</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques et analyses -->
+    <div class="row mb-4">
+        <div class="col-md-8 mb-3">
+            <div class="card stat-card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-graph-up text-primary"></i>
+                        Évolution des Paiements (30 derniers jours)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="evolutionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-trophy text-warning"></i>
+                        Top 5 Clients
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if top_clients %}
+                        {% for client in top_clients %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ client.nom_complet }}</strong>
+                                <br>
+                                <small class="text-muted">{{ client.credits.count }} crédit(s)</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary">{{ client.total_credits|floatformat:0 }} DH</span>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr class="my-2">{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Aucun client trouvé</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Performance des agents et alertes -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-person-badge text-primary"></i>
+                        Performance des Agents
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if agents_performance %}
+                        {% for agent in agents_performance %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ agent.get_full_name|default:agent.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ agent.reglements_crees.count }} paiement(s)</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success performance-badge">
+                                    {{ agent.total_paiements|floatformat:0 }} DH
+                                </span>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr class="my-2">{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Aucune donnée de performance</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                    <i class="bi bi-bell text-warning"></i>
+                        Alertes Actives
+                        <span class="badge bg-warning ms-2">{{ alertes_en_attente.count }}</span>
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if alertes_en_attente %}
+                        {% for alerte in alertes_en_attente|slice:":5" %}
+                        <div class="alert-card border-warning mb-2 p-2 rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                                                         <strong>{{ alerte.echeance.credit.client.nom_complet|default:"Client non spécifié" }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ alerte.message|truncatechars:50 }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-warning">{{ alerte.date_rappel|date:"d/m/Y" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if alertes_en_attente.count > 5 %}
+                            <div class="text-center mt-2">
+                                <small class="text-muted">+{{ alertes_en_attente.count|add:"-5" }} autres alertes</small>
+                            </div>
+                        {% endif %}
+                                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2">Aucune alerte active</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nouvelle section : Statut des Chèques -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card stat-card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-bank2 text-primary"></i>
+                        Statut des Chèques - Vue d'Ensemble
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Statistiques des chèques -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 text-center">
+                            <div class="border-end">
+                                <h4 class="text-success mb-1">{{ total_paiements_cheques_verses|floatformat:0 }} DH</h4>
+                                <small class="text-muted">Chèques Versés</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="border-end">
+                                <h4 class="text-warning mb-1">{{ total_cheques_en_attente|floatformat:0 }} DH</h4>
+                                <small class="text-muted">Chèques Non Versés</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="border-end">
+                                <h4 class="text-info mb-1">{{ cheques_echeance_proche.count }}</h4>
+                                <small class="text-muted">Échéance Proche (7j)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-danger mb-1">{{ cheques_en_retard.count }}</h4>
+                            <small class="text-muted">En Retard</small>
+                        </div>
+                    </div>
+
+                    <!-- Détail des chèques par statut -->
+                    <div class="row">
+                        <!-- Chèques Non Versés -->
+                        <div class="col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-white">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        Chèques Non Versés (à Encaisser)
+                                        <span class="badge bg-white text-warning ms-2">{{ total_cheques_en_attente|floatformat:0 }} DH</span>
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if total_cheques_en_attente > 0 %}
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-info-circle"></i>
+                                            <strong>Attention :</strong> Ces chèques ne sont pas encore encaissés et ne réduisent pas le reste à payer des crédits.
+                                        </div>
+                                        
+                                        <!-- Liste des chèques non versés récents -->
+                                        <h6 class="text-warning mb-3">
+                                            <i class="bi bi-clock"></i> Chèques Récents
+                                        </h6>
+                                        {% for reglement in paiements_aujourd_hui %}
+                                            {% if reglement.mode_paiement == 'cheque' and reglement.statut == 'non_verse' %}
+                                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                                <div>
+                                                    <strong>{{ reglement.credit.client.nom_complet }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        {{ reglement.commentaire|truncatechars:30 }}
+                                                    </small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <span class="badge bg-warning">{{ reglement.montant|floatformat:2 }} DH</span>
+                                                    <br>
+                                                    <small class="text-muted">{{ reglement.date_reglement|date:"d/m/Y" }}</small>
+                                                </div>
+                                            </div>
+                                    {% endif %}
+                                        {% endfor %}
+                                        
+                                        <div class="text-center mt-3">
+                                            <a href="{% url 'gestion_credits:credit_list' %}?statut=non_regles" 
+                                               class="btn btn-warning btn-sm">
+                                                 <i class="bi bi-eye"></i> Voir Tous les Crédits Non Réglés
+                                             </a>
+                                         </div>
+                                    {% else %}
+                                         <div class="text-center py-3">
+                                             <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                                             <p class="text-success mt-2">Aucun chèque en attente !</p>
+                                         </div>
+                                     {% endif %}
+                                 </div>
+                             </div>
+                         </div>
+
+                         <!-- Chèques Versés -->
+                         <div class="col-md-6">
+                             <div class="card border-success">
+                                 <div class="card-header bg-success text-white">
+                                     <h6 class="mb-0">
+                                         <i class="bi bi-check-circle"></i>
+                                         Chèques Versés (Encaissés)
+                                         <span class="badge bg-white text-success ms-2">{{ total_paiements_cheques_verses|floatformat:0 }} DH</span>
+                                     </h6>
+                                 </div>
+                                 <div class="card-body">
+                                     {% if total_paiements_cheques_verses > 0 %}
+                                         <div class="alert alert-success">
+                                             <i class="bi bi-check-circle"></i>
+                                             <strong>Excellent :</strong> Ces chèques ont été encaissés et contribuent au recouvrement des crédits.
+                                         </div>
+                                         
+                                         <!-- Statistiques des chèques versés -->
+                                         <div class="row text-center mb-3">
+                                             <div class="col-6">
+                                                 <h5 class="text-success">{{ total_paiements_cheques_verses|floatformat:0 }} DH</h5>
+                                                 <small class="text-muted">Total Encaissé</small>
+                                             </div>
+                                             <div class="col-6">
+                                                 <h5 class="text-info">{{ taux_recouvrement|floatformat:1 }}%</h5>
+                                                 <small class="text-muted">Taux Recouvrement</small>
+                                             </div>
+                                         </div>
+
+                                         <!-- Liste des chèques versés récents -->
+                                         <h6 class="text-success mb-3">
+                                             <i class="bi bi-calendar-check"></i> Derniers Encaissements
+                                         </h6>
+                                         {% for reglement in paiements_aujourd_hui %}
+                                             {% if reglement.mode_paiement == 'cheque' and reglement.statut == 'verse' %}
+                                             <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                                 <div>
+                                                     <strong>{{ reglement.credit.client.nom_complet }}</strong>
+                                                     <br>
+                                                     <small class="text-muted">
+                                                         {{ reglement.commentaire|truncatechars:30 }}
+                                                     </small>
+                                                 </div>
+                                                 <div class="text-end">
+                                                     <span class="badge bg-success">{{ reglement.montant|floatformat:2 }} DH</span>
+                                                     <br>
+                                                     <small class="text-muted">{{ reglement.date_reglement|date:"d/m/Y" }}</small>
+                                                 </div>
+                                             </div>
+                                    {% endif %}
+                            {% endfor %}
+                                         
+                <div class="text-center mt-3">
+                                             <a href="{% url 'gestion_credits:credit_list' %}?statut=payes" 
+                                                class="btn btn-success btn-sm">
+                                                 <i class="bi bi-eye"></i> Voir Tous les Crédits Réglés
+                    </a>
+                </div>
+                {% else %}
+                                         <div class="text-center py-3">
+                                             <i class="bi bi-bank text-muted" style="font-size: 2rem;"></i>
+                                             <p class="text-muted mt-2">Aucun chèque versé pour le moment</p>
+                </div>
+                {% endif %}
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+
+                     <!-- Barre de progression du recouvrement -->
+                     <div class="mt-4">
+                         <h6 class="text-primary mb-3">
+                             <i class="bi bi-graph-up"></i> Progression du Recouvrement
+                         </h6>
+                         <div class="progress" style="height: 20px;">
+                             {% if montant_total_credits > 0 %}
+                                 <div class="progress-bar bg-success" style="width: {{ pourcentage_especes }}%">
+                                     Espèces: {{ total_paiements_especes|floatformat:0 }} DH
+                                 </div>
+                                 <div class="progress-bar bg-info" style="width: {{ pourcentage_cheques_verses }}%">
+                                     Chèques Versés: {{ total_paiements_cheques_verses|floatformat:0 }} DH
+                                 </div>
+                                 <div class="progress-bar bg-warning" style="width: {{ pourcentage_cheques_en_attente }}%">
+                                     Chèques en Attente: {{ total_cheques_en_attente|floatformat:0 }} DH
+                                 </div>
+                             {% endif %}
+                         </div>
+                         <div class="text-center mt-2">
+                             <small class="text-muted">
+                                 <strong>Total Recouvré :</strong> {{ total_paiements_verses|floatformat:0 }} DH 
+                                 sur {{ montant_total_credits|floatformat:0 }} DH 
+                                 (<strong>{{ taux_recouvrement|floatformat:1 }}%</strong>)
+                             </small>
+                         </div>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Graphique d'évolution des paiements
+    const ctx = document.getElementById('evolutionChart').getContext('2d');
+    const evolutionChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% for paiement in paiements_30_jours %}
+                    '{{ paiement.date }}'{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Paiements (DH)',
+                data: [
+                    {% for paiement in paiements_30_jours %}
+                        {{ paiement.montant }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#667eea',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#667eea',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' DH';
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
