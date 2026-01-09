@@ -259,9 +259,9 @@ ALLOWED_HOSTS=<domaines-autorisés>
 ## 📞 Support
 
 ### Contact
-- **Développeur** : Assistant IA
+- **Développeur** : LABIB LAYACHI
 - **Email** : support@sanlam.ma
-- **Documentation** : Ce fichier README
+- **Documentation** : Ce fichier README C.P.LAYACHI LABIB
 
 ### Ressources
 - **Documentation Django** : https://docs.djangoproject.com/
